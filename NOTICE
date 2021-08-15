@@ -1,0 +1,8 @@
+sbt-npm-package
+Copyright 2021 Christopher Davenport
+Licensed under MIT License (see LICENSE)
+
+This software contains portions of code derived from sbt-scalajs-bundler
+https://github.com/scalacenter/scalajs-bundler
+Copyright (c) 2016 EPFL
+Licensed under BSD 3-Clause License (see licenses/license_scalajsbundler)

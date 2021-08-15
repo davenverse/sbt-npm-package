@@ -1,0 +1,1 @@
+addSbtPlugin("io.chrisdavenport" % "sbt-davenverse" % "0.1.1")
