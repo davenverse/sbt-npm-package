@@ -4,11 +4,11 @@
 
 ## Quick Start
 
-To use sbt-npm in an existing SBT project with Scala 2.11 or a later version, add the following dependencies to your
-`build.sbt` depending on your needs:
+To use sbt-npm in an existing SBT project with SBT 1 or a later version, add the following dependencies to your
+`project/plugins.sbt` depending on your needs:
 
 ```scala
-libraryDependencies ++= Seq(
-  "io.chrisdavenport" %% "sbt-npm" % "<version>"
+addSbtPlugin(
+  "io.chrisdavenport" %% "sbt-npm-package" % "<version>"
 )
 ```
