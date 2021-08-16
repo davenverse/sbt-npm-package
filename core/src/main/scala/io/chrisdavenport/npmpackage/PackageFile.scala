@@ -4,6 +4,7 @@ package io.chrisdavenport.npmpackage
 import sbt._
 import _root_.io.circe.Json
 import _root_.io.circe.syntax._
+import java.nio.file.Files
 
 object PackageFile {
 
@@ -22,8 +23,9 @@ object PackageFile {
     fullClasspath: Seq[Attributed[File]],
     configuration: Configuration,
     streams: Keys.TaskStreams
-  ): Unit = {
+  ): File = {
     val packageJsonFile = targetDir / "package.json"
+    if (Files.exists(packageJsonFile.toPath())) Files.delete(packageJsonFile.toPath()) else ()
     write(
       streams.log,
       packageJsonFile,
@@ -41,6 +43,7 @@ object PackageFile {
       configuration
     )
     streams.log.info(s"Wrote package.json File At - $packageJsonFile")
+    packageJsonFile
   }
 
   private def write(
@@ -77,7 +80,7 @@ object PackageFile {
       )
 
     log.debug(s"Writing 'package.json'\n${packageJson.spaces2}")
-    IO.write(targetFile, packageJson.noSpaces)
+    IO.write(targetFile, packageJson.spaces2)
   }
 
   private def json(

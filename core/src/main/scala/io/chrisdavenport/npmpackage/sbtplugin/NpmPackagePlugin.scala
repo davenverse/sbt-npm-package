@@ -29,6 +29,8 @@ object NpmPackagePlugin extends AutoPlugin {
     lazy val npmPackageAuthor = settingKey[String]("Author of this npm package")
     lazy val npmPackageLicense = settingKey[Option[String]]("License for this npm package")
 
+    lazy val npmPackageREADME = settingKey[Option[File]]("README file to use for this npm package")
+
     /**
       * List of the NPM packages (name and version) your application depends on.
       * You can use [semver](https://docs.npmjs.com/misc/semver) versions:
@@ -103,11 +105,11 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageStage: SettingKey[Stage] = 
       settingKey("Stage Action to Use for npm package")
 
-    val npmPackage = taskKey[Unit]("")
+    val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
 
-    val npmPackageOutputJS = taskKey[Unit]("Write JS to output directory")
-
-    val npmPackagePackageJson = taskKey[Unit]("Write Npm Package File to Directory")
+    val npmPackageOutputJS = taskKey[File]("Write JS to output directory")
+    val npmPackagePackageJson = taskKey[File]("Write Npm Package File to Directory")
+    val npmPackageWriteREADME = taskKey[File]("Write README to the npm package")
 
   }
   import autoImport._
@@ -126,9 +128,13 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageDevDependencies := Seq(),
     npmPackageResolutions := Map(),
     npmPackageAdditionalNpmConfig := Map(),
-    npmPackageOutputDirectory := crossTarget.value,
+    npmPackageOutputDirectory := crossTarget.value / npmPackageDirectory,
     npmPackageStage := Stage.FastOpt,
-
+    npmPackageREADME := {
+      val path = file("README.md")
+      if (java.nio.file.Files.exists(path.toPath())) Option(path)
+      else Option.empty[File]
+    },
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
   ) ++
     inConfig(Compile)(perConfigSettings) ++
@@ -141,7 +147,7 @@ object NpmPackagePlugin extends AutoPlugin {
     Def.settings(
       npmPackagePackageJson := {
         PackageFile.writePackageJson(
-          (npmPackageOutputDirectory.value / npmPackageDirectory),
+          npmPackageOutputDirectory.value,
           npmPackageName.value,
           npmPackageVersion.value,
           npmPackageDescription.value,
@@ -165,19 +171,48 @@ object NpmPackagePlugin extends AutoPlugin {
         Def.task{
           val output = outputTask.value.data
           val from = output.toPath()
-          val targetDir = (npmPackageOutputDirectory.value / npmPackageDirectory)
-          val target = (targetDir / "main.js").toPath
+          val targetDir = npmPackageOutputDirectory.value
+          val target = (targetDir / "main.js")
+          val targetPath = target.toPath
 
-          if (Files.exists(target)) Files.delete(target) else ()
-          Files.copy(from, target)
-          streams.value.log.info(s"Wrote $from to $target")
+          if (Files.exists(targetPath)) Files.delete(targetPath) else ()
+          Files.copy(from, targetPath)
+          streams.value.log.info(s"Wrote $from to $targetPath")
+          target
         }
       }.value,
+
+      npmPackageWriteREADME := {
+        val from = npmPackageREADME.value.map(_.toPath())
+        val targetDir = npmPackageOutputDirectory.value
+        val target = (targetDir / "README.md")
+        val targetPath = target.toPath
+        val log = streams.value.log
+        from match {
+          case Some(from) => 
+            if (Files.exists(targetPath)) Files.delete(targetPath) else ()
+            Files.copy(from, targetPath)
+            log.info(s"Wrote $from to $targetPath")
+            target
+          case None =>  
+            log.warn(s"Source File For README missing $from")
+
+            val readmeText = s"""# ${npmPackageName.value}
+            |
+            |${npmPackageDescription}""".stripMargin
+
+            Files.write(targetPath, readmeText.getBytes())
+            log.info(s"Wrote custom file for readme to $targetPath")
+          
+            target
+        }
+      },
 
       npmPackage := {
         val a = npmPackageOutputJS.value
         val b = npmPackagePackageJson.value
-        void(a,b)
+        val c = npmPackageWriteREADME.value
+        void(a,b,c)
       }
 
     )
