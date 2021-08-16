@@ -232,6 +232,9 @@ object NpmPackagePlugin extends AutoPlugin {
           val target = (targetDir / "main.js")
           val targetPath = target.toPath
 
+          if (Files.exists(targetDir.toPath())) ()
+          else Files.createDirectories(targetDir.toPath())
+
           if (Files.exists(targetPath)) Files.delete(targetPath) else ()
           Files.copy(from, targetPath)
           streams.value.log.info(s"Wrote $from to $targetPath")
@@ -240,13 +243,16 @@ object NpmPackagePlugin extends AutoPlugin {
       }.value,
 
       npmPackageWriteREADME := {
-        val from = npmPackageREADME.value.map(_.toPath())
+        val from = npmPackageREADME.value
         val targetDir = npmPackageOutputDirectory.value
         val target = (targetDir / "README.md")
         val targetPath = target.toPath
         val log = streams.value.log
+        if (Files.exists(targetDir.toPath())) ()
+        else Files.createDirectories(targetDir.toPath())
         from match {
-          case Some(from) => 
+          case Some(fromF) => 
+            val from = fromF.toPath()
             if (Files.exists(targetPath)) Files.delete(targetPath) else ()
             Files.copy(from, targetPath)
             log.info(s"Wrote $from to $targetPath")
@@ -266,15 +272,17 @@ object NpmPackagePlugin extends AutoPlugin {
       },
 
       npmPackageInstall := {
-        npmPackage.value
         val output = npmPackageOutputDirectory.value
+        if (Files.exists(output.toPath())) ()
+        else Files.createDirectories(output.toPath())
+        npmPackage.value
         ExternalCommand.install(
           baseDirectory.value,
           output,
-          false,
+          npmPackageUseYarn.value,
           streams.value.log,
-          Seq(),
-          Seq()
+          npmPackageNpmExtraArgs.value,
+          npmPackageYarnExtraArgs.value,
         )
         output
       },
@@ -285,17 +293,17 @@ object NpmPackagePlugin extends AutoPlugin {
         ExternalCommand.publish(
           baseDirectory.value,
           output,
-          false,
+          npmPackageUseYarn.value,
           streams.value.log,
-          Seq(),
-          Seq()
+          npmPackageNpmExtraArgs.value,
+          npmPackageYarnExtraArgs.value,
         )
         output
       },
 
       npmPackage := {
-        val a = npmPackageOutputJS.value
         val b = npmPackagePackageJson.value
+        val a = npmPackageOutputJS.value
         val c = npmPackageWriteREADME.value
         void(a,b,c)
       }
