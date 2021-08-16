@@ -1,6 +1,5 @@
 > clean
 
 # Check Node Output
-> npmPackagePackageJson
-> npmPackageOutputJS
+> npmPackageNpmrc 
 > npmPackage

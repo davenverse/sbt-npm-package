@@ -148,6 +148,15 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageKeywords: SettingKey[Seq[String]] =
       settingKey("Keywords to place in the npm package")
 
+    val npmPackageNpmrcRegistry: SettingKey[Option[String]] =
+      settingKey("npm registry to publish to, defaults to registry.npmjs.org")
+
+    val npmPackageNpmrcScope: SettingKey[Option[String]] =
+      settingKey("Scope to use if you want a limited scoep in your npm repository")
+
+    val npmPackageNpmrcAuthEnvironmentalVariable: SettingKey[String] = 
+      settingKey("Environmental Variable that holds auth information")
+
 
     val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
 
@@ -156,6 +165,7 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageWriteREADME = taskKey[File]("Write README to the npm package")
     val npmPackageInstall = taskKey[File]("Install Deps for npm/yarn for the npm package")
     val npmPackagePublish = taskKey[File]("Publish for npm/yarn for the npm package")
+    val npmPackageNpmrc = taskKey[File]("Write Npmrc File")
 
   }
   import autoImport._
@@ -186,6 +196,9 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageNpmExtraArgs := Seq.empty,
     npmPackageYarnExtraArgs := Seq.empty,
     npmPackageKeywords := Seq.empty,
+    npmPackageNpmrcRegistry := None,
+    npmPackageNpmrcScope := None,
+    npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
     npmPackageREADME := {
       val path = file("README.md")
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
@@ -299,6 +312,16 @@ object NpmPackagePlugin extends AutoPlugin {
           npmPackageYarnExtraArgs.value,
         )
         output
+      },
+
+      npmPackageNpmrc := {
+        NpmConfig.writeNpmrc(
+          npmPackageOutputDirectory.value,
+          npmPackageNpmrcScope.value,
+          npmPackageNpmrcRegistry.value,
+          npmPackageNpmrcAuthEnvironmentalVariable.value,
+          streams.value.log
+        )
       },
 
       npmPackage := {
