@@ -16,6 +16,7 @@ object PackageFile {
     repository: Option[String],
     author: String,
     license: Option[String],
+    keywords: List[String],
     npmDependencies: Seq[(String, String)],
     npmDevDependencies: Seq[(String, String)],
     npmResolutions: Map[String, String],
@@ -35,6 +36,7 @@ object PackageFile {
       repository,
       author,
       license,
+      keywords,
       npmDependencies,
       npmDevDependencies,
       npmResolutions,
@@ -55,6 +57,7 @@ object PackageFile {
     repository: Option[String],
     author: String,
     license: Option[String],
+    keywords: List[String],
     npmDependencies: Seq[(String, String)],
     npmDevDependencies: Seq[(String, String)],
     npmResolutions: Map[String, String],
@@ -71,6 +74,7 @@ object PackageFile {
         repository,
         author,
         license,
+        keywords,
         npmDependencies,
         npmDevDependencies,
         npmResolutions,
@@ -91,6 +95,7 @@ object PackageFile {
     repository: Option[String],
     author: String,
     license: Option[String],
+    keywords: List[String],
     npmDependencies: Seq[(String, String)],
     npmDevDependencies: Seq[(String, String)],
     npmResolutions: Map[String, String],
@@ -114,8 +119,12 @@ object PackageFile {
       Json.obj(additionalNpmConfig.toSeq:_*).deepMerge(
         Json.obj(
           "name" -> name.asJson,
+          "description" -> description.asJson,
           "version" -> version.asJson,
-          "repository" -> repository.asJson,
+          "repository" -> repository.map(repo => Json.obj(
+            "type" -> "git".asJson,
+            "url" -> repo.asJson,
+          )).asJson,
           "author" -> author.asJson,
           "license" -> license.asJson,
           "main" -> "main.js".asJson,
@@ -124,7 +133,8 @@ object PackageFile {
           ),
           "devDependencies" -> Json.obj(
             resolveDependencies(devDependencies, npmResolutions, log).map{ case (a, a2) => (a, a2.asJson)}:_*
-          )
+          ),
+          "keywords" -> keywords.asJson,
         ).dropNullValues
       )
     packageJson

@@ -99,17 +99,63 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageAdditionalNpmConfig: SettingKey[Map[String, Json]] =
       settingKey[Map[String, Json]]("Additional option to include in the generated 'package.json'")
 
+
+    /**
+      * Whether to use [[https://yarnpkg.com/ Yarn]] to fetch dependencies instead
+      * of `npm`. Yarn has a caching mechanism that makes the process faster.
+      *
+      * If set to `true`, it requires Yarn 0.22.0+ to be available on the
+      * host platform.
+      *
+      * Defaults to `false`.
+      *
+      * @group settings
+      */
+    val npmPackageUseYarn: SettingKey[Boolean] =
+      settingKey[Boolean]("Whether to use yarn for updates")
+
+
+    /**
+      * Additional arguments for yarn
+      *
+      * Defaults to an empty list.
+      *
+      * @group settings
+      */
+    val npmPackageYarnExtraArgs = SettingKey[Seq[String]](
+      "yarnExtraArgs",
+      "Custom arguments for yarn"
+    )
+
+    /**
+      * Additional arguments for npm
+      *
+      * Defaults to an empty list.
+      *
+      * @group settings
+      */
+    val npmPackageNpmExtraArgs = SettingKey[Seq[String]](
+      "npmExtraArgs",
+      "Custom arguments for npm"
+    )
+
     val npmPackageOutputDirectory: SettingKey[File] = 
       settingKey[File]("Output Directory for Npm package outputs")
 
     val npmPackageStage: SettingKey[Stage] = 
       settingKey("Stage Action to Use for npm package")
 
+    val npmPackageKeywords: SettingKey[Seq[String]] =
+      settingKey("Keywords to place in the npm package")
+
+
     val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
 
     val npmPackageOutputJS = taskKey[File]("Write JS to output directory")
     val npmPackagePackageJson = taskKey[File]("Write Npm Package File to Directory")
     val npmPackageWriteREADME = taskKey[File]("Write README to the npm package")
+    val npmPackageInstall = taskKey[File]("Install Deps for npm/yarn for the npm package")
+    val npmPackagePublish = taskKey[File]("Publish for npm/yarn for the npm package")
 
   }
   import autoImport._
@@ -119,7 +165,13 @@ object NpmPackagePlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Setting[_]] = Seq(
     npmPackageName := name.value,
-    npmPackageVersion := version.value,
+    npmPackageVersion := {
+      val vn = VersionNumber(version.value)
+      (vn._1, vn._2, vn._3) match {
+        case (Some(i), Some(ii), Some(iii)) => s"$i.$ii.$iii" // Must be semver for npm
+        case _ => "0.0.1"
+      }
+    },
     npmPackageDescription := "NPM Package Created By sbt-npm-package",
     npmPackageAuthor := "Unknown",
     npmPackageLicense := licenses.value.map(_._1).headOption,
@@ -130,6 +182,10 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageAdditionalNpmConfig := Map(),
     npmPackageOutputDirectory := crossTarget.value / npmPackageDirectory,
     npmPackageStage := Stage.FastOpt,
+    npmPackageUseYarn := false,
+    npmPackageNpmExtraArgs := Seq.empty,
+    npmPackageYarnExtraArgs := Seq.empty,
+    npmPackageKeywords := Seq.empty,
     npmPackageREADME := {
       val path = file("README.md")
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
@@ -154,6 +210,7 @@ object NpmPackagePlugin extends AutoPlugin {
           npmPackageRepository.value,
           npmPackageAuthor.value,
           npmPackageLicense.value,
+          npmPackageKeywords.value.toList,
           npmPackageDependencies.value,
           npmPackageDevDependencies.value,
           npmPackageResolutions.value,
@@ -206,6 +263,34 @@ object NpmPackagePlugin extends AutoPlugin {
           
             target
         }
+      },
+
+      npmPackageInstall := {
+        npmPackage.value
+        val output = npmPackageOutputDirectory.value
+        ExternalCommand.install(
+          baseDirectory.value,
+          output,
+          false,
+          streams.value.log,
+          Seq(),
+          Seq()
+        )
+        output
+      },
+
+      npmPackagePublish := {
+        npmPackageInstall.value
+        val output = npmPackageOutputDirectory.value
+        ExternalCommand.publish(
+          baseDirectory.value,
+          output,
+          false,
+          streams.value.log,
+          Seq(),
+          Seq()
+        )
+        output
       },
 
       npmPackage := {
