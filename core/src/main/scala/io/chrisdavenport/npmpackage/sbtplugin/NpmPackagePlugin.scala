@@ -139,6 +139,8 @@ object NpmPackagePlugin extends AutoPlugin {
       "Custom arguments for npm"
     )
 
+    val npmPackageOutputFilename: SettingKey[String] =
+      settingKey[String]("Output JS File name - i.e. main.js")
     val npmPackageOutputDirectory: SettingKey[File] = 
       settingKey[File]("Output Directory for Npm package outputs")
 
@@ -190,6 +192,7 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageDevDependencies := Seq(),
     npmPackageResolutions := Map(),
     npmPackageAdditionalNpmConfig := Map(),
+    npmPackageOutputFilename := "main.js",
     npmPackageOutputDirectory := crossTarget.value / npmPackageDirectory,
     npmPackageStage := Stage.FastOpt,
     npmPackageUseYarn := false,
@@ -224,6 +227,7 @@ object NpmPackagePlugin extends AutoPlugin {
           npmPackageAuthor.value,
           npmPackageLicense.value,
           npmPackageKeywords.value.toList,
+          npmPackageOutputFilename.value,
           npmPackageDependencies.value,
           npmPackageDevDependencies.value,
           npmPackageResolutions.value,
@@ -242,7 +246,7 @@ object NpmPackagePlugin extends AutoPlugin {
           val output = outputTask.value.data
           val from = output.toPath()
           val targetDir = npmPackageOutputDirectory.value
-          val target = (targetDir / "main.js")
+          val target = (targetDir / npmPackageOutputFilename.value)
           val targetPath = target.toPath
 
           if (Files.exists(targetDir.toPath())) ()
