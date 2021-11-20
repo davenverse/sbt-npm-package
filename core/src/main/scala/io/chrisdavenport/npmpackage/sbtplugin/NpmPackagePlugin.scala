@@ -263,10 +263,10 @@ object NpmPackagePlugin extends AutoPlugin {
           else Files.createDirectories(targetDir.toPath())
 
           if (Files.exists(targetPath)) Files.delete(targetPath) else ()
-          val fromString = Files.readString(from)
+          val fromString = new String (Files.readAllBytes(from))
           val binaryString = if (npmPackageBinaryEnable.value) "#!/usr/bin/env node\n" else ""
           val finalString = binaryString ++ fromString
-          Files.writeString(targetPath, finalString)
+          Files.write(targetPath, finalString.getBytes())
           streams.value.log.info(s"Wrote $from to $targetPath")
           target
         }
