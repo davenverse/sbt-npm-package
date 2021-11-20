@@ -160,6 +160,12 @@ object NpmPackagePlugin extends AutoPlugin {
       settingKey("Environmental Variable that holds auth information")
 
 
+    val npmPackageBinaryEnable: SettingKey[Boolean] = 
+      settingKey("Whether to make this package a binary - defaults to false")
+    
+    val npmPackageBinaries: SettingKey[Seq[(String, String)]] =
+      settingKey("The name of the binary executable - defaults to project name")
+
     val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
 
     val npmPackageOutputJS = taskKey[File]("Write JS to output directory")
@@ -202,6 +208,8 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageNpmrcRegistry := None,
     npmPackageNpmrcScope := None,
     npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
+    npmPackageBinaryEnable := false,
+    npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
     npmPackageREADME := {
       val path = file("README.md")
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
@@ -232,6 +240,8 @@ object NpmPackagePlugin extends AutoPlugin {
           npmPackageDevDependencies.value,
           npmPackageResolutions.value,
           npmPackageAdditionalNpmConfig.value,
+          npmPackageBinaryEnable.value,
+          npmPackageBinaries.value,
           dependencyClasspath.value,
           configuration.value,
           streams.value
@@ -253,7 +263,10 @@ object NpmPackagePlugin extends AutoPlugin {
           else Files.createDirectories(targetDir.toPath())
 
           if (Files.exists(targetPath)) Files.delete(targetPath) else ()
-          Files.copy(from, targetPath)
+          val fromString = new String (Files.readAllBytes(from))
+          val binaryString = if (npmPackageBinaryEnable.value) "#!/usr/bin/env node\n" else ""
+          val finalString = binaryString ++ fromString
+          Files.write(targetPath, finalString.getBytes())
           streams.value.log.info(s"Wrote $from to $targetPath")
           target
         }

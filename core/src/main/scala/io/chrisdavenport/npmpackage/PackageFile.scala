@@ -22,6 +22,8 @@ object PackageFile {
     npmDevDependencies: Seq[(String, String)],
     npmResolutions: Map[String, String],
     additionalNpmConfig: Map[String, Json],
+    enableBinary: Boolean,
+    binaryArtifacts: Seq[(String, String)],
     fullClasspath: Seq[Attributed[File]],
     configuration: Configuration,
     streams: Keys.TaskStreams
@@ -43,6 +45,8 @@ object PackageFile {
       npmDevDependencies,
       npmResolutions,
       additionalNpmConfig,
+      enableBinary,
+      binaryArtifacts,
       fullClasspath,
       configuration
     )
@@ -65,6 +69,8 @@ object PackageFile {
     npmDevDependencies: Seq[(String, String)],
     npmResolutions: Map[String, String],
     additionalNpmConfig: Map[String, Json],
+    enableBinary: Boolean,
+    binaryArtifacts: Seq[(String, String)],
     fullClasspath: Seq[Attributed[File]],
     currentConfiguration: Configuration,
   ): Unit = {
@@ -82,7 +88,9 @@ object PackageFile {
         npmDependencies,
         npmDevDependencies,
         npmResolutions,
-        additionalNpmConfig, 
+        additionalNpmConfig,
+        enableBinary,
+        binaryArtifacts,
         fullClasspath,
         currentConfiguration
       )
@@ -105,6 +113,8 @@ object PackageFile {
     npmDevDependencies: Seq[(String, String)],
     npmResolutions: Map[String, String],
     additionalNpmConfig: Map[String, Json],
+    enableBinary: Boolean,
+    binaryArtifacts: Seq[(String, String)],
     fullClasspath: Seq[Attributed[File]],
     currentConfiguration: Configuration,
   ): Json = {
@@ -118,6 +128,15 @@ object PackageFile {
       npmDevDependencies ++ (
         if (currentConfiguration == Compile) npmManifestDependencies.compileDevDependencies
         else npmManifestDependencies.testDevDependencies
+      )
+
+    val binary = 
+      Json.obj(
+        "bin" -> {
+          if (enableBinary) Json.obj(
+            binaryArtifacts.map{ case (k, v) => k -> v.asJson}:_*
+          ) else Json.Null
+        }
       )
     
     val packageJson = 
@@ -140,7 +159,7 @@ object PackageFile {
             resolveDependencies(devDependencies, npmResolutions, log).map{ case (a, a2) => (a, a2.asJson)}:_*
           ),
           "keywords" -> keywords.asJson,
-        ).dropNullValues
+        ).deepMerge(binary).dropNullValues
       )
     packageJson
   }
