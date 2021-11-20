@@ -23,7 +23,7 @@ object PackageFile {
     npmResolutions: Map[String, String],
     additionalNpmConfig: Map[String, Json],
     enableBinary: Boolean,
-    binaryArtifactName: String,
+    binaryArtifacts: Seq[(String, String)],
     fullClasspath: Seq[Attributed[File]],
     configuration: Configuration,
     streams: Keys.TaskStreams
@@ -46,7 +46,7 @@ object PackageFile {
       npmResolutions,
       additionalNpmConfig,
       enableBinary,
-      binaryArtifactName,
+      binaryArtifacts,
       fullClasspath,
       configuration
     )
@@ -70,7 +70,7 @@ object PackageFile {
     npmResolutions: Map[String, String],
     additionalNpmConfig: Map[String, Json],
     enableBinary: Boolean,
-    binaryArtifactName: String,
+    binaryArtifacts: Seq[(String, String)],
     fullClasspath: Seq[Attributed[File]],
     currentConfiguration: Configuration,
   ): Unit = {
@@ -90,7 +90,7 @@ object PackageFile {
         npmResolutions,
         additionalNpmConfig,
         enableBinary,
-        binaryArtifactName,
+        binaryArtifacts,
         fullClasspath,
         currentConfiguration
       )
@@ -114,7 +114,7 @@ object PackageFile {
     npmResolutions: Map[String, String],
     additionalNpmConfig: Map[String, Json],
     enableBinary: Boolean,
-    binaryArtifactName: String,
+    binaryArtifacts: Seq[(String, String)],
     fullClasspath: Seq[Attributed[File]],
     currentConfiguration: Configuration,
   ): Json = {
@@ -134,7 +134,7 @@ object PackageFile {
       Json.obj(
         "bin" -> {
           if (enableBinary) Json.obj(
-            binaryArtifactName -> filename.asJson
+            binaryArtifacts.map{ case (k, v) => k -> v.asJson}:_*
           ) else Json.Null
         }
       )

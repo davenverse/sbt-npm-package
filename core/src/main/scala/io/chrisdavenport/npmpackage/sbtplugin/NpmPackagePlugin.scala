@@ -163,7 +163,7 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageBinaryEnable: SettingKey[Boolean] = 
       settingKey("Whether to make this package a binary - defaults to false")
     
-    val npmPackageBinaryName: SettingKey[String] =
+    val npmPackageBinaries: SettingKey[Seq[(String, String)]] =
       settingKey("The name of the binary executable - defaults to project name")
 
     val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
@@ -209,7 +209,7 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageNpmrcScope := None,
     npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
     npmPackageBinaryEnable := false,
-    npmPackageBinaryName := npmPackageName.value,
+    npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
     npmPackageREADME := {
       val path = file("README.md")
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
@@ -241,7 +241,7 @@ object NpmPackagePlugin extends AutoPlugin {
           npmPackageResolutions.value,
           npmPackageAdditionalNpmConfig.value,
           npmPackageBinaryEnable.value,
-          npmPackageBinaryName.value,
+          npmPackageBinaries.value,
           dependencyClasspath.value,
           configuration.value,
           streams.value
