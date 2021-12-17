@@ -273,7 +273,6 @@ object NpmPackagePlugin extends AutoPlugin {
           if (Files.exists(targetDir.toPath())) ()
           else Files.createDirectories(targetDir.toPath())
 
-          Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
           val lines = Files.readAllLines(from).asScala.map { l =>
             if (l.startsWith("//# sourceMappingURL="))
               s"//# sourceMappingURL=${targetSourceMapPath.getFileName()}\n"
