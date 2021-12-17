@@ -3,3 +3,5 @@
 # Check Node Output
 > npmPackageNpmrc 
 > npmPackage
+$ exists target/scala-2.12/npm-package/main.js
+$ exists target/scala-2.12/npm-package/main.js.map
