@@ -10,6 +10,7 @@ import org.scalajs.sbtplugin.Stage
 import org.scalajs.sbtplugin.Stage.FastOpt
 import org.scalajs.sbtplugin.Stage.FullOpt
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 // import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
 
 object NpmPackagePlugin extends AutoPlugin {
@@ -283,20 +284,11 @@ object NpmPackagePlugin extends AutoPlugin {
         from match {
           case Some(fromF) => 
             val from = fromF.toPath()
-            if (Files.exists(targetPath)) Files.delete(targetPath) else ()
-            Files.copy(from, targetPath)
+            Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
             log.info(s"Wrote $from to $targetPath")
             target
           case None =>  
             log.warn(s"Source File For README missing $from")
-
-            val readmeText = s"""# ${npmPackageName.value}
-            |
-            |${npmPackageDescription}""".stripMargin
-
-            Files.write(targetPath, readmeText.getBytes())
-            log.info(s"Wrote custom file for readme to $targetPath")
-          
             target
         }
       },
