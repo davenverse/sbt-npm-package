@@ -5,3 +5,8 @@
 > npmPackage
 $ exists target/scala-2.12/npm-package/main.js
 $ exists target/scala-2.12/npm-package/main.js.map
+# Check source map url is updated
+$ exec grep '//# sourceMappingURL=main.js.map' target/scala-2.12/npm-package/main.js
+-$ exec grep '//# sourceMappingURL=minimal-example-fastopt.js.map' target/scala-2.12/npm-package/main.js
+# Check we can do it again
+> npmPackage

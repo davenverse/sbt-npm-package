@@ -11,6 +11,7 @@ import org.scalajs.sbtplugin.Stage.FastOpt
 import org.scalajs.sbtplugin.Stage.FullOpt
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import scala.collection.JavaConverters._
 // import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
 
 object NpmPackagePlugin extends AutoPlugin {
@@ -272,7 +273,12 @@ object NpmPackagePlugin extends AutoPlugin {
           if (Files.exists(targetDir.toPath())) ()
           else Files.createDirectories(targetDir.toPath())
 
-          Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
+          val lines = Files.readAllLines(from).asScala.map { l =>
+            if (l.startsWith("//# sourceMappingURL="))
+              s"//# sourceMappingURL=${targetSourceMapPath.getFileName()}\n"
+            else l
+          }
+          Files.write(targetPath, lines.asJava)
           streams.value.log.info(s"Wrote $from to $targetPath")
           if (fromSourceMap.toFile().exists()) {
             Files.copy(fromSourceMap, targetSourceMapPath, StandardCopyOption.REPLACE_EXISTING)
