@@ -215,7 +215,14 @@ object NpmPackagePlugin extends AutoPlugin {
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
       else Option.empty[File]
     },
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
+    scalaJSLinkerConfig := {
+      val c = scalaJSLinkerConfig.value
+      val hashbang = if (npmPackageBinaryEnable.value)
+        "#!/usr/bin/env node\n"
+      else
+        ""
+      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
+    },
   ) ++
     inConfig(Compile)(perConfigSettings) ++
     inConfig(Test)(perConfigSettings)
