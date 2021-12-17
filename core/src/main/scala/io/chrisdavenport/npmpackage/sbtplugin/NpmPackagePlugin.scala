@@ -216,7 +216,14 @@ object NpmPackagePlugin extends AutoPlugin {
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
       else Option.empty[File]
     },
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
+    scalaJSLinkerConfig := {
+      val c = scalaJSLinkerConfig.value
+      val hashbang = if (npmPackageBinaryEnable.value)
+        "#!/usr/bin/env node\n"
+      else
+        ""
+      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
+    },
   ) ++
     inConfig(Compile)(perConfigSettings) ++
     inConfig(Test)(perConfigSettings)
@@ -263,11 +270,7 @@ object NpmPackagePlugin extends AutoPlugin {
           if (Files.exists(targetDir.toPath())) ()
           else Files.createDirectories(targetDir.toPath())
 
-          if (Files.exists(targetPath)) Files.delete(targetPath) else ()
-          val fromString = new String (Files.readAllBytes(from))
-          val binaryString = if (npmPackageBinaryEnable.value) "#!/usr/bin/env node\n" else ""
-          val finalString = binaryString ++ fromString
-          Files.write(targetPath, finalString.getBytes())
+          Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
           streams.value.log.info(s"Wrote $from to $targetPath")
           target
         }
