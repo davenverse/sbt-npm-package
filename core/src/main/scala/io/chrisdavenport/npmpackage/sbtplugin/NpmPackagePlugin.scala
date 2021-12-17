@@ -10,6 +10,8 @@ import org.scalajs.sbtplugin.Stage
 import org.scalajs.sbtplugin.Stage.FastOpt
 import org.scalajs.sbtplugin.Stage.FullOpt
 import java.nio.file.Files
+import java.nio.file.CopyOption
+import java.nio.file.StandardCopyOption
 // import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
 
 object NpmPackagePlugin extends AutoPlugin {
@@ -255,9 +257,11 @@ object NpmPackagePlugin extends AutoPlugin {
         Def.task{
           val output = outputTask.value.data
           val from = output.toPath()
+          val fromSourceMap = from.resolveSibling(from.getFileName() + ".map")
           val targetDir = npmPackageOutputDirectory.value
           val target = (targetDir / npmPackageOutputFilename.value)
           val targetPath = target.toPath
+          val targetSourceMapPath = targetPath.resolveSibling(targetPath.getFileName() + ".map")
 
           if (Files.exists(targetDir.toPath())) ()
           else Files.createDirectories(targetDir.toPath())
@@ -268,6 +272,9 @@ object NpmPackagePlugin extends AutoPlugin {
           val finalString = binaryString ++ fromString
           Files.write(targetPath, finalString.getBytes())
           streams.value.log.info(s"Wrote $from to $targetPath")
+          if (fromSourceMap.toFile().exists()) {
+            Files.copy(fromSourceMap, targetSourceMapPath, StandardCopyOption.REPLACE_EXISTING)
+          } else ()
           target
         }
       }.value,
