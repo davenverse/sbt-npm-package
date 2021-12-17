@@ -10,7 +10,6 @@ import org.scalajs.sbtplugin.Stage
 import org.scalajs.sbtplugin.Stage.FastOpt
 import org.scalajs.sbtplugin.Stage.FullOpt
 import java.nio.file.Files
-import java.nio.file.CopyOption
 import java.nio.file.StandardCopyOption
 // import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
 
@@ -217,7 +216,14 @@ object NpmPackagePlugin extends AutoPlugin {
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
       else Option.empty[File]
     },
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
+    scalaJSLinkerConfig := {
+      val c = scalaJSLinkerConfig.value
+      val hashbang = if (npmPackageBinaryEnable.value)
+        "#!/usr/bin/env node\n"
+      else
+        ""
+      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
+    },
   ) ++
     inConfig(Compile)(perConfigSettings) ++
     inConfig(Test)(perConfigSettings)
@@ -266,11 +272,7 @@ object NpmPackagePlugin extends AutoPlugin {
           if (Files.exists(targetDir.toPath())) ()
           else Files.createDirectories(targetDir.toPath())
 
-          if (Files.exists(targetPath)) Files.delete(targetPath) else ()
-          val fromString = new String (Files.readAllBytes(from))
-          val binaryString = if (npmPackageBinaryEnable.value) "#!/usr/bin/env node\n" else ""
-          val finalString = binaryString ++ fromString
-          Files.write(targetPath, finalString.getBytes())
+          Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
           streams.value.log.info(s"Wrote $from to $targetPath")
           if (fromSourceMap.toFile().exists()) {
             Files.copy(fromSourceMap, targetSourceMapPath, StandardCopyOption.REPLACE_EXISTING)
@@ -290,20 +292,11 @@ object NpmPackagePlugin extends AutoPlugin {
         from match {
           case Some(fromF) => 
             val from = fromF.toPath()
-            if (Files.exists(targetPath)) Files.delete(targetPath) else ()
-            Files.copy(from, targetPath)
+            Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
             log.info(s"Wrote $from to $targetPath")
             target
           case None =>  
             log.warn(s"Source File For README missing $from")
-
-            val readmeText = s"""# ${npmPackageName.value}
-            |
-            |${npmPackageDescription}""".stripMargin
-
-            Files.write(targetPath, readmeText.getBytes())
-            log.info(s"Wrote custom file for readme to $targetPath")
-          
             target
         }
       },
