@@ -10,6 +10,7 @@ import org.scalajs.sbtplugin.Stage
 import org.scalajs.sbtplugin.Stage.FastOpt
 import org.scalajs.sbtplugin.Stage.FullOpt
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 // import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
 
 object NpmPackagePlugin extends AutoPlugin {
@@ -269,8 +270,7 @@ object NpmPackagePlugin extends AutoPlugin {
           if (Files.exists(targetDir.toPath())) ()
           else Files.createDirectories(targetDir.toPath())
 
-          if (Files.exists(targetPath)) Files.delete(targetPath) else ()
-          Files.copy(from, targetPath)
+          Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
           streams.value.log.info(s"Wrote $from to $targetPath")
           target
         }
