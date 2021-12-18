@@ -1,7 +1,8 @@
 
-val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.7.0")
+val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.8.0")
 
 ThisBuild / crossScalaVersions := Seq("2.12.14")
+ThisBuild / versionScheme := Some("early-semver")
 
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("test"))
