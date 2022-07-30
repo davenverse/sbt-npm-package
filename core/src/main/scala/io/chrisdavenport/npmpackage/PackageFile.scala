@@ -24,6 +24,7 @@ object PackageFile {
     additionalNpmConfig: Map[String, Json],
     enableBinary: Boolean,
     binaryArtifacts: Seq[(String, String)],
+    `type`: String,
     fullClasspath: Seq[Attributed[File]],
     configuration: Configuration,
     streams: Keys.TaskStreams
@@ -47,6 +48,7 @@ object PackageFile {
       additionalNpmConfig,
       enableBinary,
       binaryArtifacts,
+      `type`,
       fullClasspath,
       configuration
     )
@@ -71,6 +73,7 @@ object PackageFile {
     additionalNpmConfig: Map[String, Json],
     enableBinary: Boolean,
     binaryArtifacts: Seq[(String, String)],
+    `type`: String,
     fullClasspath: Seq[Attributed[File]],
     currentConfiguration: Configuration,
   ): Unit = {
@@ -91,6 +94,7 @@ object PackageFile {
         additionalNpmConfig,
         enableBinary,
         binaryArtifacts,
+        `type`,
         fullClasspath,
         currentConfiguration
       )
@@ -115,6 +119,7 @@ object PackageFile {
     additionalNpmConfig: Map[String, Json],
     enableBinary: Boolean,
     binaryArtifacts: Seq[(String, String)],
+    `type`: String,
     fullClasspath: Seq[Attributed[File]],
     currentConfiguration: Configuration,
   ): Json = {
@@ -145,6 +150,7 @@ object PackageFile {
           "name" -> name.asJson,
           "description" -> description.asJson,
           "version" -> version.asJson,
+          "type" -> `type`.asJson,
           "repository" -> repository.map(repo => Json.obj(
             "type" -> "git".asJson,
             "url" -> repo.asJson,
