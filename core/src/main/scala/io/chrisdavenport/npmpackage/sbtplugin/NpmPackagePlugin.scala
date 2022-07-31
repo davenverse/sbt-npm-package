@@ -169,7 +169,7 @@ object NpmPackagePlugin extends AutoPlugin {
       settingKey("The name of the binary executable - defaults to project name")
 
     val npmPackageType: SettingKey[String] = 
-      settingKey("The type of the package - defaults to 'commonjs' for ModuleKind.CommonJSModule and 'module' for ModuleKind.ESModule")
+      settingKey("The type of the package - defaults to 'commonjs' for ModuleKind.CommonJSModule or ModuleKind.NoModule, and 'module' for ModuleKind.ESModule")
 
     val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
 
