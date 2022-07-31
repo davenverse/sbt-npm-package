@@ -8,6 +8,48 @@ import java.nio.file.Files
 
 object PackageFile {
 
+  @deprecated("Use `writePackageJson` with `type` instead", "0.1.1")
+  def writePackageJson(
+    targetDir: File,
+    name: String,
+    version: String,
+    description: String,
+    repository: Option[String],
+    author: String,
+    license: Option[String],
+    keywords: List[String],
+    filename: String,
+    npmDependencies: Seq[(String, String)],
+    npmDevDependencies: Seq[(String, String)],
+    npmResolutions: Map[String, String],
+    additionalNpmConfig: Map[String, Json],
+    enableBinary: Boolean,
+    binaryArtifacts: Seq[(String, String)],
+    fullClasspath: Seq[Attributed[File]],
+    configuration: Configuration,
+    streams: Keys.TaskStreams
+  ): File = writePackageJson(
+    targetDir,
+    name,
+    version,
+    description,
+    repository,
+    author,
+    license,
+    keywords,
+    filename,
+    npmDependencies,
+    npmDevDependencies,
+    npmResolutions,
+    additionalNpmConfig,
+    enableBinary,
+    binaryArtifacts,
+    "commonjs",
+    fullClasspath,
+    configuration,
+    streams
+  )
+
   def writePackageJson(
     targetDir: File,
     name: String,
