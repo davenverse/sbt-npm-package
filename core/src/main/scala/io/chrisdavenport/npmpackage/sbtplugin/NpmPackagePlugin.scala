@@ -168,6 +168,9 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageBinaries: SettingKey[Seq[(String, String)]] =
       settingKey("The name of the binary executable - defaults to project name")
 
+    val npmPackageType: SettingKey[String] = 
+      settingKey("The type of the package - defaults to 'commonjs' for ModuleKind.CommonJSModule or ModuleKind.NoModule, and 'module' for ModuleKind.ESModule")
+
     val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
 
     val npmPackageOutputJS = taskKey[File]("Write JS to output directory")
@@ -212,6 +215,10 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
     npmPackageBinaryEnable := false,
     npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
+    npmPackageType := {
+      if (scalaJSLinkerConfig.value.moduleKind == ModuleKind.ESModule) "module"
+      else "commonjs"
+    },
     npmPackageREADME := {
       val path = file("README.md")
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
@@ -251,6 +258,7 @@ object NpmPackagePlugin extends AutoPlugin {
           npmPackageAdditionalNpmConfig.value,
           npmPackageBinaryEnable.value,
           npmPackageBinaries.value,
+          npmPackageType.value,
           dependencyClasspath.value,
           configuration.value,
           streams.value
