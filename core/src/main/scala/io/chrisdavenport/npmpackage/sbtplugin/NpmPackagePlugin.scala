@@ -195,6 +195,51 @@ object NpmPackagePlugin extends AutoPlugin {
         ""
       c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
     },
+  ) ++
+    inConfig(Compile)(perConfigSettings) ++
+    inConfig(Test)(perConfigSettings)
+
+  override def buildSettings: Seq[Setting[_]] = Seq(
+    npmPackageName := name.value,
+    npmPackageVersion := {
+      val vn = VersionNumber(version.value)
+      (vn._1, vn._2, vn._3) match {
+        case (Some(i), Some(ii), Some(iii)) => s"$i.$ii.$iii" // Must be semver for npm
+        case _ => "0.0.1"
+      }
+    },
+    npmPackageDescription := "NPM Package Created By sbt-npm-package",
+    npmPackageAuthor := "Unknown",
+    npmPackageLicense := licenses.value.map(_._1).headOption,
+    npmPackageRepository := remoteIdentifier,
+    npmPackageDependencies := Seq(),
+    npmPackageDevDependencies := Seq(),
+    npmPackageResolutions := Map(),
+    npmPackageAdditionalNpmConfig := Map(),
+    npmPackageOutputFilename := "main.js",
+    npmPackageStage := Stage.FastOpt,
+    npmPackageUseYarn := false,
+    npmPackageNpmExtraArgs := Seq.empty,
+    npmPackageYarnExtraArgs := Seq.empty,
+    npmPackageKeywords := Seq.empty,
+    npmPackageNpmrcRegistry := None,
+    npmPackageNpmrcScope := None,
+    npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
+    npmPackageBinaryEnable := false,
+    npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
+    npmPackageREADME := {
+      val path = file("README.md")
+      if (java.nio.file.Files.exists(path.toPath())) Option(path)
+      else Option.empty[File]
+    },
+  )
+
+  lazy val perConfigSettings = Def.settings(
+    npmPackageOutputDirectory := crossTarget.value / npmPackageDirectory,
+    npmPackageType := {
+      if (scalaJSLinkerConfig.value.moduleKind == ModuleKind.ESModule) "module"
+      else "commonjs"
+    },
         npmPackagePackageJson := {
       PackageFile.writePackageJson(
         npmPackageOutputDirectory.value,
@@ -315,46 +360,6 @@ object NpmPackagePlugin extends AutoPlugin {
       val c = npmPackageWriteREADME.value
       void(a,b,c)
     }
-  )
-
-  override def buildSettings: Seq[Setting[_]] = Seq(
-    npmPackageName := name.value,
-    npmPackageVersion := {
-      val vn = VersionNumber(version.value)
-      (vn._1, vn._2, vn._3) match {
-        case (Some(i), Some(ii), Some(iii)) => s"$i.$ii.$iii" // Must be semver for npm
-        case _ => "0.0.1"
-      }
-    },
-    npmPackageDescription := "NPM Package Created By sbt-npm-package",
-    npmPackageAuthor := "Unknown",
-    npmPackageLicense := licenses.value.map(_._1).headOption,
-    npmPackageRepository := remoteIdentifier,
-    npmPackageDependencies := Seq(),
-    npmPackageDevDependencies := Seq(),
-    npmPackageResolutions := Map(),
-    npmPackageAdditionalNpmConfig := Map(),
-    npmPackageOutputFilename := "main.js",
-    npmPackageOutputDirectory := crossTarget.value / npmPackageDirectory,
-    npmPackageStage := Stage.FastOpt,
-    npmPackageUseYarn := false,
-    npmPackageNpmExtraArgs := Seq.empty,
-    npmPackageYarnExtraArgs := Seq.empty,
-    npmPackageKeywords := Seq.empty,
-    npmPackageNpmrcRegistry := None,
-    npmPackageNpmrcScope := None,
-    npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
-    npmPackageBinaryEnable := false,
-    npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
-    npmPackageType := {
-      if (scalaJSLinkerConfig.value.moduleKind == ModuleKind.ESModule) "module"
-      else "commonjs"
-    },
-    npmPackageREADME := {
-      val path = file("README.md")
-      if (java.nio.file.Files.exists(path.toPath())) Option(path)
-      else Option.empty[File]
-    },
   )
 
   private val remoteIdentifier: Option[String] = {
