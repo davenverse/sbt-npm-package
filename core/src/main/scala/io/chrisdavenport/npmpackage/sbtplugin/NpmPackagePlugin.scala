@@ -189,14 +189,6 @@ object NpmPackagePlugin extends AutoPlugin {
   override def projectSettings: Seq[Setting[_]] = Seq(
     npmPackageName := name.value,
     npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
-    scalaJSLinkerConfig := {
-      val c = scalaJSLinkerConfig.value
-      val hashbang = if (npmPackageBinaryEnable.value)
-        "#!/usr/bin/env node\n"
-      else
-        ""
-      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
-    },
     npmPackageVersion := {
       val vn = VersionNumber(version.value)
       (vn._1, vn._2, vn._3) match {
@@ -239,6 +231,14 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageType := {
       if (scalaJSLinkerConfig.value.moduleKind == ModuleKind.ESModule) "module"
       else "commonjs"
+    },
+    scalaJSLinkerConfig := {
+      val c = scalaJSLinkerConfig.value
+      val hashbang = if (npmPackageBinaryEnable.value)
+        "#!/usr/bin/env node\n"
+      else
+        ""
+      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
     },
     npmPackagePackageJson := {
       PackageFile.writePackageJson(
