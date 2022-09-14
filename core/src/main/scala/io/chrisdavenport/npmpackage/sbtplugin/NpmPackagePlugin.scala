@@ -187,6 +187,19 @@ object NpmPackagePlugin extends AutoPlugin {
   )
 
   override def projectSettings: Seq[Setting[_]] = Seq(
+    scalaJSLinkerConfig := {
+      val c = scalaJSLinkerConfig.value
+      val hashbang = if (npmPackageBinaryEnable.value)
+        "#!/usr/bin/env node\n"
+      else
+        ""
+      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
+    },
+  ) ++
+    inConfig(Compile)(perConfigSettings) ++
+    inConfig(Test)(perConfigSettings)
+
+  override def buildSettings: Seq[Setting[_]] = Seq(
     npmPackageName := name.value,
     npmPackageVersion := {
       val vn = VersionNumber(version.value)
@@ -224,19 +237,6 @@ object NpmPackagePlugin extends AutoPlugin {
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
       else Option.empty[File]
     },
-    scalaJSLinkerConfig := {
-      val c = scalaJSLinkerConfig.value
-      val hashbang = if (npmPackageBinaryEnable.value)
-        "#!/usr/bin/env node\n"
-      else
-        ""
-      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
-    },
-  ) ++
-    inConfig(Compile)(perConfigSettings) ++
-    inConfig(Test)(perConfigSettings)
-
-  override def buildSettings: Seq[Setting[_]] = Seq(
   )
 
   lazy val perConfigSettings = 
