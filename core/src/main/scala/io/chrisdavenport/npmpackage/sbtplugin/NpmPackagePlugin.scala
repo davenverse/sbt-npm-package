@@ -195,9 +195,7 @@ object NpmPackagePlugin extends AutoPlugin {
         ""
       c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
     },
-  ) ++
-    inConfig(Compile)(perConfigSettings) ++
-    inConfig(Test)(perConfigSettings)
+  )
 
   override def buildSettings: Seq[Setting[_]] = Seq(
     npmPackageName := name.value,
@@ -237,133 +235,127 @@ object NpmPackagePlugin extends AutoPlugin {
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
       else Option.empty[File]
     },
-  )
-
-  lazy val perConfigSettings = 
-    Def.settings(
-      npmPackagePackageJson := {
-        PackageFile.writePackageJson(
-          npmPackageOutputDirectory.value,
-          npmPackageName.value,
-          npmPackageVersion.value,
-          npmPackageDescription.value,
-          npmPackageRepository.value,
-          npmPackageAuthor.value,
-          npmPackageLicense.value,
-          npmPackageKeywords.value.toList,
-          npmPackageOutputFilename.value,
-          npmPackageDependencies.value,
-          npmPackageDevDependencies.value,
-          npmPackageResolutions.value,
-          npmPackageAdditionalNpmConfig.value,
-          npmPackageBinaryEnable.value,
-          npmPackageBinaries.value,
-          npmPackageType.value,
-          dependencyClasspath.value,
-          configuration.value,
-          streams.value
-        )
-      },
-      npmPackageOutputJS := Def.taskDyn{
-        val outputTask = npmPackageStage.value match {
-          case FastOpt => (configuration / fastOptJS).taskValue
-          case FullOpt => (configuration / fullOptJS).taskValue
-        }
-        Def.task{
-          val output = outputTask.value.data
-          val from = output.toPath()
-          val fromSourceMap = from.resolveSibling(from.getFileName() + ".map")
-          val targetDir = npmPackageOutputDirectory.value
-          val target = (targetDir / npmPackageOutputFilename.value)
-          val targetPath = target.toPath
-          val targetSourceMapPath = targetPath.resolveSibling(targetPath.getFileName() + ".map")
-
-          if (Files.exists(targetDir.toPath())) ()
-          else Files.createDirectories(targetDir.toPath())
-
-          val lines = Files.readAllLines(from).asScala.map { l =>
-            if (l.startsWith("//# sourceMappingURL="))
-              s"//# sourceMappingURL=${targetSourceMapPath.getFileName()}\n"
-            else l
-          }
-          Files.write(targetPath, lines.asJava)
-          streams.value.log.info(s"Wrote $from to $targetPath")
-          if (fromSourceMap.toFile().exists()) {
-            Files.copy(fromSourceMap, targetSourceMapPath, StandardCopyOption.REPLACE_EXISTING)
-          } else ()
-          target
-        }
-      }.value,
-
-      npmPackageWriteREADME := {
-        val from = npmPackageREADME.value
+    npmPackagePackageJson := {
+      PackageFile.writePackageJson(
+        npmPackageOutputDirectory.value,
+        npmPackageName.value,
+        npmPackageVersion.value,
+        npmPackageDescription.value,
+        npmPackageRepository.value,
+        npmPackageAuthor.value,
+        npmPackageLicense.value,
+        npmPackageKeywords.value.toList,
+        npmPackageOutputFilename.value,
+        npmPackageDependencies.value,
+        npmPackageDevDependencies.value,
+        npmPackageResolutions.value,
+        npmPackageAdditionalNpmConfig.value,
+        npmPackageBinaryEnable.value,
+        npmPackageBinaries.value,
+        npmPackageType.value,
+        dependencyClasspath.value,
+        configuration.value,
+        streams.value
+      )
+    },
+    npmPackageOutputJS := Def.taskDyn{
+      val outputTask = npmPackageStage.value match {
+        case FastOpt => (configuration / fastOptJS).taskValue
+        case FullOpt => (configuration / fullOptJS).taskValue
+      }
+      Def.task{
+        val output = outputTask.value.data
+        val from = output.toPath()
+        val fromSourceMap = from.resolveSibling(from.getFileName() + ".map")
         val targetDir = npmPackageOutputDirectory.value
-        val target = (targetDir / "README.md")
+        val target = (targetDir / npmPackageOutputFilename.value)
         val targetPath = target.toPath
-        val log = streams.value.log
+        val targetSourceMapPath = targetPath.resolveSibling(targetPath.getFileName() + ".map")
+
         if (Files.exists(targetDir.toPath())) ()
         else Files.createDirectories(targetDir.toPath())
-        from match {
-          case Some(fromF) => 
-            val from = fromF.toPath()
-            Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
-            log.info(s"Wrote $from to $targetPath")
-            target
-          case None =>  
-            log.warn(s"Source File For README missing $from")
-            target
+
+        val lines = Files.readAllLines(from).asScala.map { l =>
+          if (l.startsWith("//# sourceMappingURL="))
+            s"//# sourceMappingURL=${targetSourceMapPath.getFileName()}\n"
+          else l
         }
-      },
-
-      npmPackageInstall := {
-        val output = npmPackageOutputDirectory.value
-        if (Files.exists(output.toPath())) ()
-        else Files.createDirectories(output.toPath())
-        npmPackage.value
-        ExternalCommand.install(
-          baseDirectory.value,
-          output,
-          npmPackageUseYarn.value,
-          streams.value.log,
-          npmPackageNpmExtraArgs.value,
-          npmPackageYarnExtraArgs.value,
-        )
-        output
-      },
-
-      npmPackagePublish := {
-        npmPackageInstall.value
-        val output = npmPackageOutputDirectory.value
-        ExternalCommand.publish(
-          baseDirectory.value,
-          output,
-          npmPackageUseYarn.value,
-          streams.value.log,
-          npmPackageNpmExtraArgs.value,
-          npmPackageYarnExtraArgs.value,
-        )
-        output
-      },
-
-      npmPackageNpmrc := {
-        NpmConfig.writeNpmrc(
-          npmPackageOutputDirectory.value,
-          npmPackageNpmrcScope.value,
-          npmPackageNpmrcRegistry.value,
-          npmPackageNpmrcAuthEnvironmentalVariable.value,
-          streams.value.log
-        )
-      },
-
-      npmPackage := {
-        val b = npmPackagePackageJson.value
-        val a = npmPackageOutputJS.value
-        val c = npmPackageWriteREADME.value
-        void(a,b,c)
+        Files.write(targetPath, lines.asJava)
+        streams.value.log.info(s"Wrote $from to $targetPath")
+        if (fromSourceMap.toFile().exists()) {
+          Files.copy(fromSourceMap, targetSourceMapPath, StandardCopyOption.REPLACE_EXISTING)
+        } else ()
+        target
       }
+    }.value,
 
-    )
+    npmPackageWriteREADME := {
+      val from = npmPackageREADME.value
+      val targetDir = npmPackageOutputDirectory.value
+      val target = (targetDir / "README.md")
+      val targetPath = target.toPath
+      val log = streams.value.log
+      if (Files.exists(targetDir.toPath())) ()
+      else Files.createDirectories(targetDir.toPath())
+      from match {
+        case Some(fromF) => 
+          val from = fromF.toPath()
+          Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
+          log.info(s"Wrote $from to $targetPath")
+          target
+        case None =>
+          log.warn(s"Source File For README missing $from")
+          target
+      }
+    },
 
+    npmPackageInstall := {
+      val output = npmPackageOutputDirectory.value
+      if (Files.exists(output.toPath())) ()
+      else Files.createDirectories(output.toPath())
+      npmPackage.value
+      ExternalCommand.install(
+        baseDirectory.value,
+        output,
+        npmPackageUseYarn.value,
+        streams.value.log,
+        npmPackageNpmExtraArgs.value,
+        npmPackageYarnExtraArgs.value,
+      )
+      output
+    },
+
+    npmPackagePublish := {
+      npmPackageInstall.value
+      val output = npmPackageOutputDirectory.value
+      ExternalCommand.publish(
+        baseDirectory.value,
+        output,
+        npmPackageUseYarn.value,
+        streams.value.log,
+        npmPackageNpmExtraArgs.value,
+        npmPackageYarnExtraArgs.value,
+      )
+      output
+    },
+
+    npmPackageNpmrc := {
+      NpmConfig.writeNpmrc(
+        npmPackageOutputDirectory.value,
+        npmPackageNpmrcScope.value,
+        npmPackageNpmrcRegistry.value,
+        npmPackageNpmrcAuthEnvironmentalVariable.value,
+        streams.value.log
+      )
+    },
+
+    npmPackage := {
+      val b = npmPackagePackageJson.value
+      val a = npmPackageOutputJS.value
+      val c = npmPackageWriteREADME.value
+      void(a,b,c)
+    }
+  )
 
   private val remoteIdentifier: Option[String] = {
     import scala.sys.process._
