@@ -187,6 +187,8 @@ object NpmPackagePlugin extends AutoPlugin {
   )
 
   override def projectSettings: Seq[Setting[_]] = Seq(
+    npmPackageName := name.value,
+    npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
     scalaJSLinkerConfig := {
       val c = scalaJSLinkerConfig.value
       val hashbang = if (npmPackageBinaryEnable.value)
@@ -195,12 +197,6 @@ object NpmPackagePlugin extends AutoPlugin {
         ""
       c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
     },
-  ) ++
-    inConfig(Compile)(perConfigSettings) ++
-    inConfig(Test)(perConfigSettings)
-
-  override def buildSettings: Seq[Setting[_]] = Seq(
-    npmPackageName := name.value,
     npmPackageVersion := {
       val vn = VersionNumber(version.value)
       (vn._1, vn._2, vn._3) match {
@@ -208,6 +204,11 @@ object NpmPackagePlugin extends AutoPlugin {
         case _ => "0.0.1"
       }
     },
+  ) ++
+    inConfig(Compile)(perConfigSettings) ++
+    inConfig(Test)(perConfigSettings)
+
+  override def buildSettings: Seq[Setting[_]] = Seq(
     npmPackageDescription := "NPM Package Created By sbt-npm-package",
     npmPackageAuthor := "Unknown",
     npmPackageLicense := licenses.value.map(_._1).headOption,
@@ -226,7 +227,6 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageNpmrcScope := None,
     npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
     npmPackageBinaryEnable := false,
-    npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
     npmPackageREADME := {
       val path = file("README.md")
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
@@ -240,7 +240,7 @@ object NpmPackagePlugin extends AutoPlugin {
       if (scalaJSLinkerConfig.value.moduleKind == ModuleKind.ESModule) "module"
       else "commonjs"
     },
-        npmPackagePackageJson := {
+    npmPackagePackageJson := {
       PackageFile.writePackageJson(
         npmPackageOutputDirectory.value,
         npmPackageName.value,
