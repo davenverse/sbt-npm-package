@@ -196,9 +196,7 @@ object NpmPackagePlugin extends AutoPlugin {
         case _ => "0.0.1"
       }
     },
-  ) ++
-    inConfig(Compile)(perConfigSettings) ++
-    inConfig(Test)(perConfigSettings)
+  ) ++ inConfig(Compile)(perConfigSettings)
 
   override def buildSettings: Seq[Setting[_]] = Seq(
     npmPackageDescription := "NPM Package Created By sbt-npm-package",
