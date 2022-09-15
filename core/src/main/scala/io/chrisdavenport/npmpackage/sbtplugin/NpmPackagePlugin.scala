@@ -196,6 +196,14 @@ object NpmPackagePlugin extends AutoPlugin {
         case _ => "0.0.1"
       }
     },
+    scalaJSLinkerConfig := {
+      val c = scalaJSLinkerConfig.value
+      val hashbang = if (npmPackageBinaryEnable.value)
+        "#!/usr/bin/env node\n"
+      else
+        ""
+      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
+    },
   ) ++
     inConfig(Compile)(perConfigSettings) ++
     inConfig(Test)(perConfigSettings)
@@ -231,14 +239,6 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageType := {
       if (scalaJSLinkerConfig.value.moduleKind == ModuleKind.ESModule) "module"
       else "commonjs"
-    },
-    scalaJSLinkerConfig := {
-      val c = scalaJSLinkerConfig.value
-      val hashbang = if (npmPackageBinaryEnable.value)
-        "#!/usr/bin/env node\n"
-      else
-        ""
-      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
     },
     npmPackagePackageJson := {
       PackageFile.writePackageJson(
