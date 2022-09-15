@@ -30,6 +30,7 @@ object NpmPackageGithubActions extends AutoPlugin {
         env = Map(
           "NPM_TOKEN" -> "${{ secrets.NPM_TOKEN }}" // https://docs.npmjs.com/using-private-packages-in-a-ci-cd-workflow#set-the-token-as-an-environment-variable-on-the-cicd-server
         ),
+        cond = Some("github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))")
       )
 
     }
@@ -39,12 +40,15 @@ object NpmPackageGithubActions extends AutoPlugin {
     import autoImport._
 
     override def buildSettings: Seq[Setting[_]] = Seq(
-      // githubWorkflowTargetTags := Seq("v*"),
-      // githubWorkflowPublishTargetBranches := Seq(
-      //   RefPredicate.StartsWith(Ref.Tag("v")),
-      // ),
-      // npmPackageGHAShouldPublish := false,
       npmPackageGHAShouldPublishNPM := true,
+      githubWorkflowTargetTags := {
+        if (npmPackageGHAShouldPublishNPM.value) githubWorkflowTargetTags.value ++ Seq("v*")
+        else githubWorkflowTargetTags.value
+      },
+      githubWorkflowPublishTargetBranches := {
+        if (npmPackageGHAShouldPublishNPM.value) githubWorkflowPublishTargetBranches.value ++ Seq(RefPredicate.StartsWith(Ref.Tag("v")))
+        else githubWorkflowPublishTargetBranches.value
+      },
       githubWorkflowBuildPreamble ++= Seq(npmPackageGHASetupNode),
       githubWorkflowPublishPreamble ++= Seq(npmPackageGHASetupNode),
       githubWorkflowBuild ++= Seq(npmPackageGHAPackageInstall),
