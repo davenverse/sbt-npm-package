@@ -165,7 +165,7 @@ object PackageFile {
     fullClasspath: Seq[Attributed[File]],
     currentConfiguration: Configuration,
   ): Json = {
-        val npmManifestDependencies = NpmDependencies.collectFromClasspath(fullClasspath)
+    val npmManifestDependencies = NpmDependencies.collectFromClasspath(fullClasspath)
     val dependencies =
       npmDependencies ++ (
         if (currentConfiguration == Compile) npmManifestDependencies.compileDependencies
