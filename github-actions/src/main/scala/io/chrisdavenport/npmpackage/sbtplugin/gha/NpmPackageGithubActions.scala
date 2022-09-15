@@ -45,6 +45,10 @@ object NpmPackageGithubActions extends AutoPlugin {
         if (npmPackageGHAShouldPublishNPM.value) githubWorkflowTargetTags.value ++ Seq("v*")
         else githubWorkflowTargetTags.value
       },
+      githubWorkflowPublishTargetBranches := {
+        if (npmPackageGHAShouldPublishNPM.value) githubWorkflowPublishTargetBranches.value ++ Seq(RefPredicate.StartsWith(Ref.Tag("v")))
+        else githubWorkflowPublishTargetBranches.value
+      },
       githubWorkflowBuildPreamble ++= Seq(npmPackageGHASetupNode),
       githubWorkflowPublishPreamble ++= Seq(npmPackageGHASetupNode),
       githubWorkflowBuild ++= Seq(npmPackageGHAPackageInstall),
