@@ -32,7 +32,6 @@ object NpmPackageGithubActions extends AutoPlugin {
         ),
         cond = Some("github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))")
       )
-
     }
 
 
