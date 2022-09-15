@@ -56,6 +56,7 @@ lazy val gha = project.in(file("github-actions"))
   .dependsOn(core)
   .settings(
     name := "sbt-npm-package-github-actions",
+    tlVersionIntroduced := Map("2.12" -> "0.1.2"),
     scriptedBufferLog := false,
     scriptedLaunchOpts ++= Seq(
     "-Dplugin.version=" + version.value,
