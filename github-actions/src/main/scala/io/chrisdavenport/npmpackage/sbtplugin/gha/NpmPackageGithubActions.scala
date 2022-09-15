@@ -17,7 +17,7 @@ class NpmPackageGithubActions extends AutoPlugin {
       val npmPackageGHASetupNode = WorkflowStep.Use(
         UseRef.Public("actions", "setup-node", "v1"),
         Map(
-          "node-version" -> "14"
+          "node-version" -> "16"
         )
       )
       val npmPackageGHAPackageInstall = WorkflowStep.Sbt(
