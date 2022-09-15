@@ -1,5 +1,15 @@
+ThisBuild / tlBaseVersion := "0.1" // your current series x.y
 
-val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.8.0")
+ThisBuild / organization := "io.chrisdavenport"
+ThisBuild / organizationName := "Christopher Davenport"
+ThisBuild / licenses := Seq(License.MIT)
+ThisBuild / developers := List(
+  tlGitHubDev("christopherdavenport", "Christopher Davenport")
+)
+ThisBuild / tlCiReleaseBranches := Seq("main")
+ThisBuild / tlSonatypeUseLegacyHost := true
+
+val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.11.0")
 
 ThisBuild / crossScalaVersions := Seq("2.12.14")
 ThisBuild / versionScheme := Some("early-semver")

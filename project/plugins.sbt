@@ -1,2 +1,2 @@
-addSbtPlugin("io.chrisdavenport" % "sbt-davenverse" % "0.1.4")
-addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.8.0")
+addSbtPlugin("org.typelevel" % "sbt-typelevel-ci-release" % "0.4.13")
+addSbtPlugin("org.typelevel" % "sbt-typelevel-settings" % "0.4.13")
