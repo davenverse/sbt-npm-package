@@ -43,6 +43,7 @@ lazy val core = project.in(file("core"))
 
 lazy val gha = project.in(file("github-actions"))
   .enablePlugins(SbtPlugin)
+  .dependsOn(core)
   .settings(
     name := "sbt-npm-package-github-actions",
     scriptedBufferLog := false,
