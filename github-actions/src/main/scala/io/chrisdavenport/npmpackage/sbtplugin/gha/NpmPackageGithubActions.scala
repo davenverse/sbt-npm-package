@@ -4,7 +4,7 @@ import sbt._
 import Keys._
 import _root_.org.typelevel.sbt.gha._
 
-class NpmPackageGithubActions extends AutoPlugin {
+object NpmPackageGithubActions extends AutoPlugin {
 
     override def trigger = allRequirements
 
