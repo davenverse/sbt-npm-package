@@ -42,22 +42,25 @@ object NpmPackageGithubActions extends AutoPlugin {
     override def buildSettings: Seq[Setting[_]] = Seq(
       npmPackageGHAShouldPublishNPM := true,
       githubWorkflowTargetTags := {
-        if (npmPackageGHAShouldPublishNPM.value) githubWorkflowTargetTags.value ++ Seq("v*")
-        else githubWorkflowTargetTags.value
+        if (npmPackageGHAShouldPublishNPM.value) {
+          val init = githubWorkflowTargetTags.value
+          val s = "v*"
+          if (init.contains(s)) init else init ++ Seq(s)
+        } else githubWorkflowTargetTags.value
       },
       githubWorkflowPublishTargetBranches := {
-        if (npmPackageGHAShouldPublishNPM.value) githubWorkflowPublishTargetBranches.value ++ Seq(RefPredicate.StartsWith(Ref.Tag("v")))
-        else githubWorkflowPublishTargetBranches.value
+        if (npmPackageGHAShouldPublishNPM.value) {
+          val init = githubWorkflowPublishTargetBranches.value
+          val s = RefPredicate.StartsWith(Ref.Tag("v"))
+          if (init.contains(s)) init else init ++ Seq(s)
+        }else githubWorkflowPublishTargetBranches.value
       },
       githubWorkflowBuildPreamble ++= Seq(npmPackageGHASetupNode),
       githubWorkflowPublishPreamble ++= Seq(npmPackageGHASetupNode),
       githubWorkflowBuild ++= Seq(npmPackageGHAPackageInstall),
       githubWorkflowPublish := {
-        val publishNpmSteps = {
-          if (npmPackageGHAShouldPublishNPM.value) Seq(npmPackageGHAPublishNPM)
-          else Seq()
-        }
-        githubWorkflowPublish.value ++ publishNpmSteps
+        if (npmPackageGHAShouldPublishNPM.value) Seq(npmPackageGHAPublishNPM)
+        else Seq()
       }
     )
 
