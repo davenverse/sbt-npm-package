@@ -36,8 +36,8 @@ lazy val core = project.in(file("core"))
     },
     addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion),
     libraryDependencies ++= Seq(
-      "io.circe"                    %% "circe-core"                 % circeV,
-      "io.circe"                    %% "circe-parser"               % circeV,
+      "io.circe" %% "circe-core"   % circeV,
+      "io.circe" %% "circe-parser" % circeV,
     )
   )
 

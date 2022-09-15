@@ -13,7 +13,6 @@ class NpmPackageGithubActions extends AutoPlugin {
     import GenerativeKeys._
 
     object autoImport {
-      val npmPackageGHAShouldPublish = settingKey[Boolean]("Whether or not to publish java/sjs artifacts")
       val npmPackageGHAShouldPublishNPM = settingKey[Boolean]("Whether or not to publish to NPM")
       val npmPackageGHASetupNode = WorkflowStep.Use(
         UseRef.Public("actions", "setup-node", "v1"),
@@ -44,22 +43,17 @@ class NpmPackageGithubActions extends AutoPlugin {
       // githubWorkflowPublishTargetBranches := Seq(
       //   RefPredicate.StartsWith(Ref.Tag("v")),
       // ),
-      npmPackageGHAShouldPublish := false,
+      // npmPackageGHAShouldPublish := false,
       npmPackageGHAShouldPublishNPM := true,
       githubWorkflowBuildPreamble ++= Seq(npmPackageGHASetupNode),
       githubWorkflowPublishPreamble ++= Seq(npmPackageGHASetupNode),
       githubWorkflowBuild ++= Seq(npmPackageGHAPackageInstall),
       githubWorkflowPublish := {
-        val publishSteps = {
-          if (npmPackageGHAShouldPublish.value)
-            Seq(WorkflowStep.Sbt(List("+publish"), name = Some("Publish project")))
-          else Seq()
-        }
         val publishNpmSteps = {
           if (npmPackageGHAShouldPublishNPM.value) Seq(npmPackageGHAPublishNPM)
           else Seq()
         }
-        publishSteps ++ publishNpmSteps
+        githubWorkflowPublish.value ++ publishNpmSteps
       }
     )
 
