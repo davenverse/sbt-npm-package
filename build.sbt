@@ -25,9 +25,7 @@ val circeV = "0.14.1"
 
 
 // Projects
-lazy val `sbt-npm-package` = project.in(file("."))
-  .disablePlugins(MimaPlugin)
-  .enablePlugins(NoPublishPlugin)
+lazy val `sbt-npm-package` = tlCrossRootProject
   .aggregate(core, gha)
 
 lazy val core = project.in(file("core"))
