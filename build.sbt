@@ -18,7 +18,7 @@ ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("test"))
 )
 
-ThisBuld /  sonatypeBundleReleaseIfRelevant :=
+ThisBuild /  commands +=
   Command.command("tlSonatypeBundleReleaseIfRelevant") { state =>
     if (state.getSetting(isSnapshot).getOrElse(false))
       state // a snapshot is good-to-go
