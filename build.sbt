@@ -18,14 +18,6 @@ ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("test"))
 )
 
-ThisBuild /  commands +=
-  Command.command("tlSonatypeBundleReleaseIfRelevant") { state =>
-    if (state.getSetting(isSnapshot).getOrElse(false))
-      state // a snapshot is good-to-go
-    else // a non-snapshot releases as a bundle
-      Command.process("sonatypeBundleRelease", state)
-  }
-
 val catsV = "2.6.1"
 val catsEffectV = "3.1.1"
 val fs2V = "3.0.6"
@@ -33,9 +25,7 @@ val circeV = "0.14.1"
 
 
 // Projects
-lazy val `sbt-npm-package` = project.in(file("."))
-  .disablePlugins(MimaPlugin)
-  .enablePlugins(NoPublishPlugin)
+lazy val `sbt-npm-package` = tlCrossRootProject
   .aggregate(core, gha)
 
 lazy val core = project.in(file("core"))
