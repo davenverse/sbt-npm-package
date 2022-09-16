@@ -18,6 +18,14 @@ ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("test"))
 )
 
+ThisBuld /  sonatypeBundleReleaseIfRelevant :=
+  Command.command("tlSonatypeBundleReleaseIfRelevant") { state =>
+    if (state.getSetting(isSnapshot).getOrElse(false))
+      state // a snapshot is good-to-go
+    else // a non-snapshot releases as a bundle
+      Command.process("sonatypeBundleRelease", state)
+  }
+
 val catsV = "2.6.1"
 val catsEffectV = "3.1.1"
 val fs2V = "3.0.6"
