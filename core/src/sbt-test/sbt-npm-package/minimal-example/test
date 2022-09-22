@@ -1,7 +1,8 @@
 > clean
 
 # Check Node Output
-> npmPackageNpmrc 
+> npmPackageNpmrc
+$ must-mirror default-expected-npmrc target/scala-2.12/npm-package/.npmrc
 > npmPackage
 $ exists target/scala-2.12/npm-package/main.js
 $ exists target/scala-2.12/npm-package/main.js.map
@@ -10,3 +11,10 @@ $ exec grep '//# sourceMappingURL=main.js.map' target/scala-2.12/npm-package/mai
 -$ exec grep '//# sourceMappingURL=minimal-example-fastopt.js.map' target/scala-2.12/npm-package/main.js
 # Check we can do it again
 > npmPackage
+
+# set custom registry and scope and check .npmrc
+> set npmPackageNpmrcAuthType := Auth
+> set npmPackageNpmrcScope := Option("custom-scope")
+> set npmPackageNpmrcRegistry := Option("https://custom-registry.example.com/repository/npm-snapshots/")
+> npmPackageNpmrc
+$ must-mirror customized-expected-npmrc target/scala-2.12/npm-package/.npmrc

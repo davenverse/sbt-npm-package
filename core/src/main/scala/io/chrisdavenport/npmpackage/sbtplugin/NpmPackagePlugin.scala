@@ -179,7 +179,15 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageInstall = taskKey[File]("Install Deps for npm/yarn for the npm package")
     val npmPackagePublish = taskKey[File]("Publish for npm/yarn for the npm package")
     val npmPackageNpmrc = taskKey[File]("Write Npmrc File")
+    val npmPackageNpmrcAuthType = settingKey[AuthType]("what authentication method should npm use for authenticating with the registry")
 
+    sealed trait AuthType
+    case object Auth extends AuthType {
+      override def toString: String = "_auth"
+    }
+    case object AuthToken extends AuthType {
+      override def toString: String = "_authToken"
+    }
   }
   import autoImport._
 
@@ -216,6 +224,7 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageNpmrcRegistry := None,
     npmPackageNpmrcScope := None,
     npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
+    npmPackageNpmrcAuthType := AuthToken,
     npmPackageBinaryEnable := false,
     npmPackageREADME := {
       val path = file("README.md")
@@ -348,7 +357,8 @@ object NpmPackagePlugin extends AutoPlugin {
         npmPackageNpmrcScope.value,
         npmPackageNpmrcRegistry.value,
         npmPackageNpmrcAuthEnvironmentalVariable.value,
-        streams.value.log
+        streams.value.log,
+        npmPackageNpmrcAuthType.value
       )
     },
 

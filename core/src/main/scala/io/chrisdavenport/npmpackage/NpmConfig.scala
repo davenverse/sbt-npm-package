@@ -4,10 +4,14 @@ import java.io.File
 import java.nio.file.Files
 import sbt._
 import java.nio.charset.StandardCharsets
+import org.http4s._
+import org.http4s.syntax.all._
+import sbtplugin.NpmPackagePlugin.autoImport.AuthType
 
 object NpmConfig {
-  // @myscope:registry=https://mycustomregistry.example.org/:_authToken=\\${NPM_TOKEN}
-  private val defaultRegistry = "//registry.npmjs.org/"
+  // @myscope:registry=https://mycustomregistry.example.org/
+  // //mycustomregistry.example.org/:_authToken=\\${NPM_TOKEN}
+  private val defaultRegistry = uri"https://registry.npmjs.org/"
 
   def writeNpmrc(
     targetDir: File,
@@ -15,6 +19,7 @@ object NpmConfig {
     customRegistry: Option[String],
     environmentVariableForAuth: String,
     log: Logger,
+    authType: AuthType,
   ): File = {
     val targetFile = targetDir / ".npmrc"
 
@@ -22,7 +27,7 @@ object NpmConfig {
     else Files.createDirectories(targetDir.toPath())
     Files.deleteIfExists(targetFile.toPath())
 
-    val output = fileContent(scope, customRegistry, environmentVariableForAuth)
+    val output = fileContent(scope, customRegistry.map(Uri.unsafeFromString), environmentVariableForAuth, authType)
 
     Files.write(targetFile.toPath(), output.getBytes(StandardCharsets.UTF_8))
     
@@ -33,14 +38,16 @@ object NpmConfig {
 
   def fileContent(
     scope: Option[String],
-    customRegistry: Option[String],
-    environmentVariableForAuth: String
+    customRegistry: Option[Uri],
+    environmentVariableForAuth: String,
+    authType: AuthType,
   ): String = {
-    val scopeComponent = scope.fold("")(s => s"@$s:")
-    val registryComponent = customRegistry.fold(defaultRegistry)(reg => s"registry=$reg")
-    val authComponent = ":_authToken=${" ++ environmentVariableForAuth ++ "}"
-    
-    scopeComponent ++ registryComponent ++ authComponent
+    val scopeRegistry = scope.map(s => s"@$s:registry=${customRegistry.getOrElse(defaultRegistry)}").getOrElse("")
+    val registryForAuth = customRegistry.getOrElse(defaultRegistry).copy(scheme = None).toString()
+
+    s"""$scopeRegistry
+       |$registryForAuth:$authType=$${$environmentVariableForAuth}
+       |""".stripMargin
   }
 
 }

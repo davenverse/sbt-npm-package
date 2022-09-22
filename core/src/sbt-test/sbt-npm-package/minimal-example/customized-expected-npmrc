@@ -1,0 +1,2 @@
+@custom-scope:registry=https://custom-registry.example.com/repository/npm-snapshots/
+//custom-registry.example.com/repository/npm-snapshots/:_auth=${NPM_TOKEN}

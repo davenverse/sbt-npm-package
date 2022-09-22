@@ -18,10 +18,8 @@ ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("test"))
 )
 
-val catsV = "2.6.1"
-val catsEffectV = "3.1.1"
-val fs2V = "3.0.6"
 val circeV = "0.14.1"
+val http4sV = "0.23.16"
 
 
 // Projects
@@ -44,8 +42,9 @@ lazy val core = project.in(file("core"))
     },
     addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion),
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"   % circeV,
-      "io.circe" %% "circe-parser" % circeV,
+      "io.circe"   %% "circe-core"    % circeV,
+      "io.circe"   %% "circe-parser"  % circeV,
+      "org.http4s" %% "http4s-core"   % http4sV,
     )
   )
 
