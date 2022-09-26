@@ -2,6 +2,7 @@ package io.chrisdavenport.npmpackage
 package sbtplugin
 
 
+import cats.syntax.all._
 import sbt._
 import Keys._
 import _root_.io.circe.Json
@@ -155,8 +156,8 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageNpmrcRegistry: SettingKey[Option[String]] =
       settingKey("npm registry to publish to, defaults to registry.npmjs.org")
 
-    val npmPackageNpmrcScope: SettingKey[Option[String]] =
-      settingKey("Scope to use if you want a limited scoep in your npm repository")
+    val npmPackageScope: SettingKey[Option[String]] =
+      settingKey("Scope to use if you want a limited scope in your npm repository")
 
     val npmPackageNpmrcAuthEnvironmentalVariable: SettingKey[String] = 
       settingKey("Environmental Variable that holds auth information")
@@ -180,6 +181,8 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackagePublish = taskKey[File]("Publish for npm/yarn for the npm package")
     val npmPackageNpmrc = taskKey[File]("Write Npmrc File")
 
+    val npmPackageNpmrcAdditionalScopes: SettingKey[Map[String, String]] = settingKey[Map[String, String]]("Additional Scopes to Set Resolution for in the .npmrc file")
+    val npmPackageNpmrcKeySettings: SettingKey[Seq[(String, String, String)]] = settingKey[Seq[(String, String, String)]]("Key Value Pairs to Set for specific paths")
   }
   import autoImport._
 
@@ -187,7 +190,16 @@ object NpmPackagePlugin extends AutoPlugin {
   )
 
   override def projectSettings: Seq[Setting[_]] = Seq(
-    npmPackageName := name.value,
+    npmPackageName := {
+      val s = npmPackageScope.value.map(_ + "/")
+      val n = name.value
+      s"${s.getOrElse("")}$n"
+    },
+    npmPackageAdditionalNpmConfig := {
+      npmPackageNpmrcRegistry.value.fold(Map[String, Json]())(s =>
+        Map("publishConfig" -> Json.obj("registry" -> Json.fromString(s)))
+      )
+    },
     npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
     npmPackageVersion := {
       val vn = VersionNumber(version.value)
@@ -206,7 +218,6 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageDependencies := Seq(),
     npmPackageDevDependencies := Seq(),
     npmPackageResolutions := Map(),
-    npmPackageAdditionalNpmConfig := Map(),
     npmPackageOutputFilename := "main.js",
     npmPackageStage := Stage.FastOpt,
     npmPackageUseYarn := false,
@@ -214,7 +225,7 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageYarnExtraArgs := Seq.empty,
     npmPackageKeywords := Seq.empty,
     npmPackageNpmrcRegistry := None,
-    npmPackageNpmrcScope := None,
+    npmPackageScope := None,
     npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
     npmPackageBinaryEnable := false,
     npmPackageREADME := {
@@ -222,6 +233,10 @@ object NpmPackagePlugin extends AutoPlugin {
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
       else Option.empty[File]
     },
+    npmPackageNpmrcAdditionalScopes := Map.empty,
+    npmPackageNpmrcKeySettings := Seq(
+      ("//registry.npmjs.org/", "_authToken", "${" ++ npmPackageNpmrcAuthEnvironmentalVariable.value ++ "}")
+    )
   )
 
   lazy val perConfigSettings = Def.settings(
@@ -343,11 +358,16 @@ object NpmPackagePlugin extends AutoPlugin {
     },
 
     npmPackageNpmrc := {
+      val ourScope = npmPackageScope.value
+      val ourReg = npmPackageNpmrcRegistry.value
+      val ourScopes = (ourScope, ourReg).tupled.fold(List.empty[(String, String)])(_ :: Nil)
+      val registries = npmPackageNpmrcAdditionalScopes.value.toList ++ ourScopes
+      val keys = npmPackageNpmrcKeySettings.value
+
       NpmConfig.writeNpmrc(
         npmPackageOutputDirectory.value,
-        npmPackageNpmrcScope.value,
-        npmPackageNpmrcRegistry.value,
-        npmPackageNpmrcAuthEnvironmentalVariable.value,
+        registries,
+        keys.toList,
         streams.value.log
       )
     },
