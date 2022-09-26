@@ -191,7 +191,7 @@ object NpmPackagePlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Setting[_]] = Seq(
     npmPackageName := {
-      val s = npmPackageNpmrcScope.value.map("@" + _ + "/")
+      val s = npmPackageNpmrcScope.value.map(_ + "/")
       val n = name.value
       s"${s.getOrElse("")}$n"
     },
