@@ -156,8 +156,8 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageNpmrcRegistry: SettingKey[Option[String]] =
       settingKey("npm registry to publish to, defaults to registry.npmjs.org")
 
-    val npmPackageNpmrcScope: SettingKey[Option[String]] =
-      settingKey("Scope to use if you want a limited scoep in your npm repository")
+    val npmPackageScope: SettingKey[Option[String]] =
+      settingKey("Scope to use if you want a limited scope in your npm repository")
 
     val npmPackageNpmrcAuthEnvironmentalVariable: SettingKey[String] = 
       settingKey("Environmental Variable that holds auth information")
@@ -191,7 +191,7 @@ object NpmPackagePlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Setting[_]] = Seq(
     npmPackageName := {
-      val s = npmPackageNpmrcScope.value.map(_ + "/")
+      val s = npmPackageScope.value.map(_ + "/")
       val n = name.value
       s"${s.getOrElse("")}$n"
     },
@@ -225,7 +225,7 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageYarnExtraArgs := Seq.empty,
     npmPackageKeywords := Seq.empty,
     npmPackageNpmrcRegistry := None,
-    npmPackageNpmrcScope := None,
+    npmPackageScope := None,
     npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
     npmPackageBinaryEnable := false,
     npmPackageREADME := {
@@ -358,7 +358,7 @@ object NpmPackagePlugin extends AutoPlugin {
     },
 
     npmPackageNpmrc := {
-      val ourScope = npmPackageNpmrcScope.value
+      val ourScope = npmPackageScope.value
       val ourReg = npmPackageNpmrcRegistry.value
       val ourScopes = (ourScope, ourReg).tupled.fold(List.empty[(String, String)])(_ :: Nil)
       val registries = npmPackageNpmrcAdditionalScopes.value.toList ++ ourScopes
