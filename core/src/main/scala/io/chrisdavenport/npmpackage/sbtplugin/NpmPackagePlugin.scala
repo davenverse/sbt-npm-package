@@ -235,7 +235,7 @@ object NpmPackagePlugin extends AutoPlugin {
     },
     npmPackageNpmrcAdditionalScopes := Map.empty,
     npmPackageNpmrcKeySettings := Seq(
-      ("//registry.npmjs.org/", "_authToken", npmPackageNpmrcAuthEnvironmentalVariable.value)
+      ("//registry.npmjs.org/", "_authToken", "${" ++ npmPackageNpmrcAuthEnvironmentalVariable.value ++ "}")
     )
   )
 
