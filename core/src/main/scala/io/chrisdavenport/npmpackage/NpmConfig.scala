@@ -6,14 +6,12 @@ import sbt._
 import java.nio.charset.StandardCharsets
 
 object NpmConfig {
-  // @myscope:registry=https://mycustomregistry.example.org/:_authToken=\\${NPM_TOKEN}
-  private val defaultRegistry = "//registry.npmjs.org/"
+
 
   def writeNpmrc(
     targetDir: File,
-    scope: Option[String],
-    customRegistry: Option[String],
-    environmentVariableForAuth: String,
+    registries: List[(String, String)], // Scope and registry targets
+    credentialConfigs: List[(String, String, String)], // Path followed by key value pairs to be set.
     log: Logger,
   ): File = {
     val targetFile = targetDir / ".npmrc"
@@ -22,7 +20,7 @@ object NpmConfig {
     else Files.createDirectories(targetDir.toPath())
     Files.deleteIfExists(targetFile.toPath())
 
-    val output = fileContent(scope, customRegistry, environmentVariableForAuth)
+    val output = fileContent(registries, credentialConfigs)
 
     Files.write(targetFile.toPath(), output.getBytes(StandardCharsets.UTF_8))
     
@@ -31,16 +29,34 @@ object NpmConfig {
     targetFile
   }
 
+  // @myscope:registry=https://mycustomregistry.example.org/:_authToken=\\${NPM_TOKEN}
+  // So this file is constructed by a set of registrys defined for scopes.
+  // And for you to be able to set custom kv pairs for any of the defined registry urls.
+
+  //
+  // registries
+  // This is necessary for any custom scope dependency resolutions.
+  // scope -> registry *
+  // keys
+  // registry -> key -> value *
+
+  def customRegistry(scope: String, registry: String): String =
+    s"$scope:registry=$registry"
+
+  def credentials(path: String, key: String, value: String): String =
+    s"$path:$key=$value"
+
+
   def fileContent(
-    scope: Option[String],
-    customRegistry: Option[String],
-    environmentVariableForAuth: String
+    registries: List[(String, String)], // Scope and registry targets
+    credentialConfigs: List[(String, String, String)] // Path followed by key value pairs to be set.
   ): String = {
-    val scopeComponent = scope.fold("")(s => s"@$s:")
-    val registryComponent = customRegistry.fold(defaultRegistry)(reg => s"registry=$reg")
-    val authComponent = ":_authToken=${" ++ environmentVariableForAuth ++ "}"
-    
-    scopeComponent ++ registryComponent ++ authComponent
+    val registryString = registries.map{ case (scope, registry) => customRegistry(scope, registry)}.mkString("\n")
+    val credentialString =credentialConfigs.map{ case (path, key, value) =>
+      credentials(path, key, value)
+    }.mkString("\n")
+
+    registryString ++ "\n" ++ credentialString
   }
 
 }
