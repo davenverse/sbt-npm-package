@@ -251,7 +251,7 @@ object NpmPackagePlugin extends AutoPlugin {
         "#!/usr/bin/env node\n"
       else
         ""
-      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
+      c.withJSHeader(s"${hashbang}${c.jsHeader}")
     },
     npmPackagePackageJson := {
       PackageFile.writePackageJson(
