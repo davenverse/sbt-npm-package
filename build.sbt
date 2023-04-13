@@ -11,7 +11,7 @@ ThisBuild / tlSonatypeUseLegacyHost := true
 
 val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.11.0")
 
-ThisBuild / crossScalaVersions := Seq("2.12.14")
+ThisBuild / crossScalaVersions := Seq("2.12.17")
 ThisBuild / versionScheme := Some("early-semver")
 
 ThisBuild / githubWorkflowBuild := Seq(
