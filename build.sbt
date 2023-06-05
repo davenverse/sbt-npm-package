@@ -62,7 +62,7 @@ lazy val gha = project.in(file("github-actions"))
     "-Dsbt.execute.extrachecks=true" // Avoid any deadlocks.
     ),
 
-    addSbtPlugin("org.typelevel" % "sbt-typelevel-github-actions" % "0.4.12"),
+    addSbtPlugin("org.typelevel" % "sbt-typelevel-github-actions" % "0.4.22"),
 
     test := {
       (Test / test).value
