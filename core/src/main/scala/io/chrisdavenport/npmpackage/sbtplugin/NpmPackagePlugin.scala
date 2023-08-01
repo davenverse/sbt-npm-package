@@ -173,7 +173,7 @@ object NpmPackagePlugin extends AutoPlugin {
       settingKey("The type of the package - defaults to 'commonjs' for ModuleKind.CommonJSModule or ModuleKind.NoModule, and 'module' for ModuleKind.ESModule")
 
     lazy val npmPackageExtraFiles: SettingKey[Seq[File]] =
-      settingKey[Seq[File]]("Extra files to copy to the NPM install directory")
+      settingKey[Seq[File]]("Extra files to copy to the Npm package output directory")
 
     val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
 
