@@ -384,15 +384,9 @@ object NpmPackagePlugin extends AutoPlugin {
       if (Files.exists(targetDir.toPath())) ()
       else Files.createDirectories(targetDir.toPath())
 
-      npmPackageExtraFiles.value.foreach { f =>
-        val targetPath = (targetDir / f.name).toPath
-
-        Files.copy(
-          f.toPath,
-          targetPath,
-          StandardCopyOption.REPLACE_EXISTING
-        )
-        log.info(s"Wrote $f to $targetPath")
+      npmPackageExtraFiles.value.foreach { from =>
+        val targetPath = (targetDir / from.name)
+        IO.copy(Seq(from -> targetPath), CopyOptions().withOverwrite(true))
       }
     },
 
