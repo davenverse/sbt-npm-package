@@ -172,11 +172,15 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageType: SettingKey[String] = 
       settingKey("The type of the package - defaults to 'commonjs' for ModuleKind.CommonJSModule or ModuleKind.NoModule, and 'module' for ModuleKind.ESModule")
 
+    lazy val npmPackageExtraFiles: SettingKey[Seq[File]] =
+      settingKey[Seq[File]]("Extra files to copy to the NPM install directory")
+
     val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
 
     val npmPackageOutputJS = taskKey[File]("Write JS to output directory")
     val npmPackagePackageJson = taskKey[File]("Write Npm Package File to Directory")
     val npmPackageWriteREADME = taskKey[File]("Write README to the npm package")
+    val npmPackageWriteExtraFiles = taskKey[Unit]("Copy extra files to the NPM install directory")
     val npmPackageInstall = taskKey[File]("Install Deps for npm/yarn for the npm package")
     val npmPackagePublish = taskKey[File]("Publish for npm/yarn for the npm package")
     val npmPackageNpmrc = taskKey[File]("Write Npmrc File")
@@ -228,6 +232,7 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageScope := None,
     npmPackageNpmrcAuthEnvironmentalVariable := "NPM_TOKEN",
     npmPackageBinaryEnable := false,
+    npmPackageExtraFiles := Seq.empty,
     npmPackageREADME := {
       val path = file("README.md")
       if (java.nio.file.Files.exists(path.toPath())) Option(path)
@@ -372,11 +377,31 @@ object NpmPackagePlugin extends AutoPlugin {
       )
     },
 
+    npmPackageWriteExtraFiles := {
+      val targetDir = npmPackageOutputDirectory.value
+      val log = streams.value.log
+
+      if (Files.exists(targetDir.toPath())) ()
+      else Files.createDirectories(targetDir.toPath())
+
+      npmPackageExtraFiles.value.foreach { f =>
+        val targetPath = (targetDir / f.name).toPath
+
+        Files.copy(
+          f.toPath,
+          targetPath,
+          StandardCopyOption.REPLACE_EXISTING
+        )
+        log.info(s"Wrote $f to $targetPath")
+      }
+    },
+
     npmPackage := {
       val b = npmPackagePackageJson.value
       val a = npmPackageOutputJS.value
       val c = npmPackageWriteREADME.value
-      void(a,b,c)
+      val d = npmPackageWriteExtraFiles.value
+      void(a,b,c,d)
     }
   )
 
