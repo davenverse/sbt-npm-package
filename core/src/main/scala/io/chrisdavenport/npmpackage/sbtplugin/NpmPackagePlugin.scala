@@ -180,7 +180,7 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageOutputJS = taskKey[File]("Write JS to output directory")
     val npmPackagePackageJson = taskKey[File]("Write Npm Package File to Directory")
     val npmPackageWriteREADME = taskKey[File]("Write README to the npm package")
-    val npmPackageWriteExtraFiles = taskKey[Unit]("Copy extra files to the NPM install directory")
+    val npmPackageWriteExtraFiles = taskKey[Unit]("Copy extra files to the NPM package output directory")
     val npmPackageInstall = taskKey[File]("Install Deps for npm/yarn for the npm package")
     val npmPackagePublish = taskKey[File]("Publish for npm/yarn for the npm package")
     val npmPackageNpmrc = taskKey[File]("Write Npmrc File")
