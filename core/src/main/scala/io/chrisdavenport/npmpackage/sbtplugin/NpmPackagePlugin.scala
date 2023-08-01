@@ -387,6 +387,7 @@ object NpmPackagePlugin extends AutoPlugin {
       npmPackageExtraFiles.value.foreach { from =>
         val targetPath = (targetDir / from.name)
         IO.copy(Seq(from -> targetPath), CopyOptions().withOverwrite(true))
+        log.info(s"Wrote $from to $targetPath")
       }
     },
 
