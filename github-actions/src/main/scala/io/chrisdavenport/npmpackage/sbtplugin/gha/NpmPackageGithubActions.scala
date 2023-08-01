@@ -14,12 +14,13 @@ object NpmPackageGithubActions extends AutoPlugin {
 
     object autoImport {
       val npmPackageGHAShouldPublishNPM = settingKey[Boolean]("Whether or not to publish to NPM")
-      val npmPackageGHASetupNode = WorkflowStep.Use(
+      val npmPackageGHANodeVersion = settingKey[Int]("Node version to use (default 18)")
+      val npmPackageGHASetupNode = Def.setting(WorkflowStep.Use(
         UseRef.Public("actions", "setup-node", "v1"),
         Map(
-          "node-version" -> "16"
+          "node-version" -> s"${npmPackageGHANodeVersion.value}"
         )
-      )
+      ))
       val npmPackageGHAPackageInstall = WorkflowStep.Sbt(
         List("npmPackageInstall"),
         name = Some("Install artifacts to npm")
@@ -40,6 +41,7 @@ object NpmPackageGithubActions extends AutoPlugin {
 
     override def buildSettings: Seq[Setting[_]] = Seq(
       npmPackageGHAShouldPublishNPM := true,
+      npmPackageGHANodeVersion := 18,
       githubWorkflowTargetTags := {
         if (npmPackageGHAShouldPublishNPM.value) {
           val init = githubWorkflowTargetTags.value
@@ -54,8 +56,8 @@ object NpmPackageGithubActions extends AutoPlugin {
           if (init.contains(s)) init else init ++ Seq(s)
         }else githubWorkflowPublishTargetBranches.value
       },
-      githubWorkflowBuildPreamble ++= Seq(npmPackageGHASetupNode),
-      githubWorkflowPublishPreamble ++= Seq(npmPackageGHASetupNode),
+      githubWorkflowBuildPreamble ++= Seq(npmPackageGHASetupNode.value),
+      githubWorkflowPublishPreamble ++= Seq(npmPackageGHASetupNode.value),
       githubWorkflowBuild ++= Seq(npmPackageGHAPackageInstall),
       githubWorkflowPublish := {
         if (npmPackageGHAShouldPublishNPM.value) Seq(npmPackageGHAPublishNPM)
