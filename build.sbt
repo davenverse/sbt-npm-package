@@ -21,7 +21,7 @@ ThisBuild / githubWorkflowBuild := Seq(
 val catsV = "2.6.1"
 val catsEffectV = "3.1.1"
 val fs2V = "3.0.6"
-val circeV = "0.14.1"
+val circeV = "0.14.5"
 
 
 // Projects
