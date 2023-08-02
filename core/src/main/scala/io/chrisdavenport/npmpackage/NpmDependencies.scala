@@ -101,7 +101,7 @@ object NpmDependencies {
                     .flatMap(_.as[NpmDependencies])
                     .fold[NpmDependencies](throw _, identity(_))
                 )
-                .to[Seq]
+                .to(Seq)
             finally
               stream.close()
           } else if (cpEntry.isDirectory) {
