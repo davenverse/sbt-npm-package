@@ -13,10 +13,13 @@ val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.11.0")
 
 ThisBuild / crossScalaVersions := Seq("2.12.18")
 ThisBuild / versionScheme := Some("early-semver")
-
-ThisBuild / githubWorkflowBuild := Seq(
-  WorkflowStep.Sbt(List("test"))
-)
+ThisBuild / tlCiMimaBinaryIssueCheck := false
+ThisBuild / tlCiScalafmtCheck := true
+ThisBuild / tlCiHeaderCheck := false
+ThisBuild / tlCiDocCheck := false
+ThisBuild / tlCiScalafixCheck := true
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
 val catsV = "2.6.1"
 val catsEffectV = "3.1.1"
