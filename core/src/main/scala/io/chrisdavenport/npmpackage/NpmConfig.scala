@@ -1,18 +1,20 @@
 package io.chrisdavenport.npmpackage
 
-import java.io.File
-import java.nio.file.Files
 import sbt._
+
+import java.io.File
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 
 object NpmConfig {
 
-
   def writeNpmrc(
-    targetDir: File,
-    registries: List[(String, String)], // Scope and registry targets
-    credentialConfigs: List[(String, String, String)], // Path followed by key value pairs to be set.
-    log: Logger,
+      targetDir: File,
+      registries: List[(String, String)], // Scope and registry targets
+      credentialConfigs: List[
+        (String, String, String)
+      ], // Path followed by key value pairs to be set.
+      log: Logger
   ): File = {
     val targetFile = targetDir / ".npmrc"
 
@@ -23,7 +25,7 @@ object NpmConfig {
     val output = fileContent(registries, credentialConfigs)
 
     Files.write(targetFile.toPath(), output.getBytes(StandardCharsets.UTF_8))
-    
+
     log.info(s"Wrote $targetFile with content: $output")
 
     targetFile
@@ -46,15 +48,20 @@ object NpmConfig {
   def credentials(path: String, key: String, value: String): String =
     s"$path:$key=$value"
 
-
   def fileContent(
-    registries: List[(String, String)], // Scope and registry targets
-    credentialConfigs: List[(String, String, String)] // Path followed by key value pairs to be set.
+      registries: List[(String, String)], // Scope and registry targets
+      credentialConfigs: List[
+        (String, String, String)
+      ] // Path followed by key value pairs to be set.
   ): String = {
-    val registryString = registries.map{ case (scope, registry) => customRegistry(scope, registry)}.mkString("\n")
-    val credentialString =credentialConfigs.map{ case (path, key, value) =>
-      credentials(path, key, value)
-    }.mkString("\n")
+    val registryString = registries
+      .map { case (scope, registry) => customRegistry(scope, registry) }
+      .mkString("\n")
+    val credentialString = credentialConfigs
+      .map { case (path, key, value) =>
+        credentials(path, key, value)
+      }
+      .mkString("\n")
 
     registryString ++ "\n" ++ credentialString
   }
