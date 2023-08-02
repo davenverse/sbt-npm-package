@@ -1,2 +1,5 @@
 # Ran scalafix/scalfmt
 769b94f0d8903aded8f9ffc6c0e0225b5581ee3c
+
+# Scala Steward: Reformat with scalafmt 3.7.11
+5bba740995560ada2fa2aca7a617faa39f8b7ec5
