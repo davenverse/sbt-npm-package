@@ -26,20 +26,20 @@ val catsEffectV = "3.1.1"
 val fs2V = "3.0.6"
 val circeV = "0.14.5"
 
-
 // Projects
 lazy val `sbt-npm-package` = tlCrossRootProject
   .aggregate(core, gha)
 
-lazy val core = project.in(file("core"))
+lazy val core = project
+  .in(file("core"))
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-npm-package",
     scriptedBufferLog := false,
     scriptedLaunchOpts ++= Seq(
-    "-Dplugin.version=" + version.value,
-    s"-Dscalajs.version=$scalaJSVersion",
-    "-Dsbt.execute.extrachecks=true" // Avoid any deadlocks.
+      "-Dplugin.version=" + version.value,
+      s"-Dscalajs.version=$scalaJSVersion",
+      "-Dsbt.execute.extrachecks=true" // Avoid any deadlocks.
     ),
     test := {
       (Test / test).value
@@ -47,12 +47,13 @@ lazy val core = project.in(file("core"))
     },
     addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion),
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"   % circeV,
-      "io.circe" %% "circe-parser" % circeV,
+      "io.circe" %% "circe-core" % circeV,
+      "io.circe" %% "circe-parser" % circeV
     )
   )
 
-lazy val gha = project.in(file("github-actions"))
+lazy val gha = project
+  .in(file("github-actions"))
   .enablePlugins(SbtPlugin)
   .dependsOn(core)
   .settings(
@@ -60,15 +61,13 @@ lazy val gha = project.in(file("github-actions"))
     tlVersionIntroduced := Map("2.12" -> "0.1.2"),
     scriptedBufferLog := false,
     scriptedLaunchOpts ++= Seq(
-    "-Dplugin.version=" + version.value,
-    s"-Dscalajs.version=$scalaJSVersion",
-    "-Dsbt.execute.extrachecks=true" // Avoid any deadlocks.
+      "-Dplugin.version=" + version.value,
+      s"-Dscalajs.version=$scalaJSVersion",
+      "-Dsbt.execute.extrachecks=true" // Avoid any deadlocks.
     ),
-
     addSbtPlugin("org.typelevel" % "sbt-typelevel-github-actions" % "0.4.22"),
-
     test := {
       (Test / test).value
       scripted.toTask("").value
-    },
+    }
   )

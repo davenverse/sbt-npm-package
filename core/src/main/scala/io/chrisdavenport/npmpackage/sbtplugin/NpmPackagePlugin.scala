@@ -1,15 +1,15 @@
 package io.chrisdavenport.npmpackage
 package sbtplugin
 
-
-import cats.syntax.all._
-import sbt._
-import Keys._
 import _root_.io.circe.Json
+import cats.syntax.all._
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import org.scalajs.sbtplugin.Stage
 import org.scalajs.sbtplugin.Stage.FastOpt
 import org.scalajs.sbtplugin.Stage.FullOpt
+import sbt.Keys._
+import sbt._
+
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import scala.collection.JavaConverters._
@@ -21,67 +21,81 @@ object NpmPackagePlugin extends AutoPlugin {
 
   override def trigger = noTrigger
 
-  override def requires = org.scalajs.sbtplugin.ScalaJSPlugin  &&
+  override def requires = org.scalajs.sbtplugin.ScalaJSPlugin &&
     plugins.JvmPlugin
 
   object autoImport {
     lazy val npmPackageName = settingKey[String]("Name to use for npm package")
-    lazy val npmPackageVersion = settingKey[String]("Version to use for npm package")
-    lazy val npmPackageRepository = settingKey[Option[String]]("Repository Location for npm package")
-    lazy val npmPackageDescription = settingKey[String]("Description of this npm package")
+    lazy val npmPackageVersion =
+      settingKey[String]("Version to use for npm package")
+    lazy val npmPackageRepository =
+      settingKey[Option[String]]("Repository Location for npm package")
+    lazy val npmPackageDescription =
+      settingKey[String]("Description of this npm package")
     lazy val npmPackageAuthor = settingKey[String]("Author of this npm package")
-    lazy val npmPackageLicense = settingKey[Option[String]]("License for this npm package")
+    lazy val npmPackageLicense =
+      settingKey[Option[String]]("License for this npm package")
 
-    lazy val npmPackageREADME = settingKey[Option[File]]("README file to use for this npm package")
+    lazy val npmPackageREADME =
+      settingKey[Option[File]]("README file to use for this npm package")
 
-    /**
-      * List of the NPM packages (name and version) your application depends on.
+    /** List of the NPM packages (name and version) your application depends on.
       * You can use [semver](https://docs.npmjs.com/misc/semver) versions:
       *
       * {{{
       *   npmPackageDependencies in Compile += "uuid" -> "~3.0.0"
       * }}}
       *
-      * Note that this key must be scoped by a `Configuration` (either `Compile` or `Test`).
+      * Note that this key must be scoped by a `Configuration` (either `Compile`
+      * or `Test`).
       *
       * @group settings
       */
     val npmPackageDependencies: SettingKey[Seq[(String, String)]] =
-      settingKey[Seq[(String, String)]]("NPM dependencies (libraries that your program uses)")
+      settingKey[Seq[(String, String)]](
+        "NPM dependencies (libraries that your program uses)"
+      )
 
     /** @group settings */
     val npmPackageDevDependencies: SettingKey[Seq[(String, String)]] =
-      settingKey[Seq[(String, String)]]("NPM dev dependencies (libraries that the build uses)")
+      settingKey[Seq[(String, String)]](
+        "NPM dev dependencies (libraries that the build uses)"
+      )
 
-    /**
-      * Map of NPM packages (name -> version) to use in case transitive NPM dependencies
-      * refer to a same package but with different version numbers. In such a
-      * case, this setting defines which version should be used for the conflicting
-      * package. Example:
+    /** Map of NPM packages (name -> version) to use in case transitive NPM
+      * dependencies refer to a same package but with different version numbers.
+      * In such a case, this setting defines which version should be used for
+      * the conflicting package. Example:
       *
       * {{{
       *   npmPackageResolutions in Compile := Map("react" -> "15.4.1")
       * }}}
       *
-      * If several Scala.js projects depend on different versions of `react`, the version `15.4.1`
-      * will be picked. But if all the projects depend on the same version of `react`, the version
-      * given in `npmResolutions` will be ignored.
+      * If several Scala.js projects depend on different versions of `react`,
+      * the version `15.4.1` will be picked. But if all the projects depend on
+      * the same version of `react`, the version given in `npmResolutions` will
+      * be ignored.
       *
-      * If different versions of the packages are referred but the package is NOT configured in `npmResolutions`,
-      * a version conflict resolution is delegated to npm/yarn. This behavior may reduce a need to configure
-      * `npmResolutions` explicitly. E.g. "14.4.2" can be automatically-picked for ">=14.0.0 14.4.2 ^14.4.1".
+      * If different versions of the packages are referred but the package is
+      * NOT configured in `npmResolutions`, a version conflict resolution is
+      * delegated to npm/yarn. This behavior may reduce a need to configure
+      * `npmResolutions` explicitly. E.g. "14.4.2" can be automatically-picked
+      * for ">=14.0.0 14.4.2 ^14.4.1".
       *
-      * Note that this key must be scoped by a `Configuration` (either `Compile` or `Test`).
+      * Note that this key must be scoped by a `Configuration` (either `Compile`
+      * or `Test`).
       *
       * @group settings
       */
     val npmPackageResolutions: SettingKey[Map[String, String]] =
-      settingKey[Map[String, String]]("NPM dependencies resolutions in case of conflict")
+      settingKey[Map[String, String]](
+        "NPM dependencies resolutions in case of conflict"
+      )
 
-    /**
-      * List of the additional configuration options to include in the generated 'package.json'.
-      * Note that package dependencies are automatically generated from `npmDependencies` and
-      * `npmDevDependencies` and should '''not''' be specified in this setting.
+    /** List of the additional configuration options to include in the generated
+      * 'package.json'. Note that package dependencies are automatically
+      * generated from `npmDependencies` and `npmDevDependencies` and should
+      * '''not''' be specified in this setting.
       *
       * {{{
       *   import scalajsbundler.util.JSON._
@@ -95,20 +109,22 @@ object NpmPackagePlugin extends AutoPlugin {
       *   )
       * }}}
       *
-      * Note that this key must be scoped by a `Configuration` (either `Compile` or `Test`).
+      * Note that this key must be scoped by a `Configuration` (either `Compile`
+      * or `Test`).
       *
       * @group settings
       */
     val npmPackageAdditionalNpmConfig: SettingKey[Map[String, Json]] =
-      settingKey[Map[String, Json]]("Additional option to include in the generated 'package.json'")
+      settingKey[Map[String, Json]](
+        "Additional option to include in the generated 'package.json'"
+      )
 
-
-    /**
-      * Whether to use [[https://yarnpkg.com/ Yarn]] to fetch dependencies instead
-      * of `npm`. Yarn has a caching mechanism that makes the process faster.
+    /** Whether to use [[https://yarnpkg.com/ Yarn]] to fetch dependencies
+      * instead of `npm`. Yarn has a caching mechanism that makes the process
+      * faster.
       *
-      * If set to `true`, it requires Yarn 0.22.0+ to be available on the
-      * host platform.
+      * If set to `true`, it requires Yarn 0.22.0+ to be available on the host
+      * platform.
       *
       * Defaults to `false`.
       *
@@ -117,9 +133,7 @@ object NpmPackagePlugin extends AutoPlugin {
     val npmPackageUseYarn: SettingKey[Boolean] =
       settingKey[Boolean]("Whether to use yarn for updates")
 
-
-    /**
-      * Additional arguments for yarn
+    /** Additional arguments for yarn
       *
       * Defaults to an empty list.
       *
@@ -130,8 +144,7 @@ object NpmPackagePlugin extends AutoPlugin {
       "Custom arguments for yarn"
     )
 
-    /**
-      * Additional arguments for npm
+    /** Additional arguments for npm
       *
       * Defaults to an empty list.
       *
@@ -144,10 +157,10 @@ object NpmPackagePlugin extends AutoPlugin {
 
     val npmPackageOutputFilename: SettingKey[String] =
       settingKey[String]("Output JS File name - i.e. main.js")
-    val npmPackageOutputDirectory: SettingKey[File] = 
+    val npmPackageOutputDirectory: SettingKey[File] =
       settingKey[File]("Output Directory for Npm package outputs")
 
-    val npmPackageStage: SettingKey[Stage] = 
+    val npmPackageStage: SettingKey[Stage] =
       settingKey("Stage Action to Use for npm package")
 
     val npmPackageKeywords: SettingKey[Seq[String]] =
@@ -157,36 +170,52 @@ object NpmPackagePlugin extends AutoPlugin {
       settingKey("npm registry to publish to, defaults to registry.npmjs.org")
 
     val npmPackageScope: SettingKey[Option[String]] =
-      settingKey("Scope to use if you want a limited scope in your npm repository")
+      settingKey(
+        "Scope to use if you want a limited scope in your npm repository"
+      )
 
-    val npmPackageNpmrcAuthEnvironmentalVariable: SettingKey[String] = 
+    val npmPackageNpmrcAuthEnvironmentalVariable: SettingKey[String] =
       settingKey("Environmental Variable that holds auth information")
 
-
-    val npmPackageBinaryEnable: SettingKey[Boolean] = 
+    val npmPackageBinaryEnable: SettingKey[Boolean] =
       settingKey("Whether to make this package a binary - defaults to false")
-    
+
     val npmPackageBinaries: SettingKey[Seq[(String, String)]] =
       settingKey("The name of the binary executable - defaults to project name")
 
-    val npmPackageType: SettingKey[String] = 
-      settingKey("The type of the package - defaults to 'commonjs' for ModuleKind.CommonJSModule or ModuleKind.NoModule, and 'module' for ModuleKind.ESModule")
+    val npmPackageType: SettingKey[String] =
+      settingKey(
+        "The type of the package - defaults to 'commonjs' for ModuleKind.CommonJSModule or ModuleKind.NoModule, and 'module' for ModuleKind.ESModule"
+      )
 
     lazy val npmPackageExtraFiles: SettingKey[Seq[File]] =
-      settingKey[Seq[File]]("Extra files to copy to the Npm package output directory")
+      settingKey[Seq[File]](
+        "Extra files to copy to the Npm package output directory"
+      )
 
-    val npmPackage = taskKey[Unit]("Creates all files and direcories for the npm package")
+    val npmPackage =
+      taskKey[Unit]("Creates all files and direcories for the npm package")
 
     val npmPackageOutputJS = taskKey[File]("Write JS to output directory")
-    val npmPackagePackageJson = taskKey[File]("Write Npm Package File to Directory")
+    val npmPackagePackageJson =
+      taskKey[File]("Write Npm Package File to Directory")
     val npmPackageWriteREADME = taskKey[File]("Write README to the npm package")
-    val npmPackageWriteExtraFiles = taskKey[Unit]("Copy extra files to the NPM package output directory")
-    val npmPackageInstall = taskKey[File]("Install Deps for npm/yarn for the npm package")
-    val npmPackagePublish = taskKey[File]("Publish for npm/yarn for the npm package")
+    val npmPackageWriteExtraFiles =
+      taskKey[Unit]("Copy extra files to the NPM package output directory")
+    val npmPackageInstall =
+      taskKey[File]("Install Deps for npm/yarn for the npm package")
+    val npmPackagePublish =
+      taskKey[File]("Publish for npm/yarn for the npm package")
     val npmPackageNpmrc = taskKey[File]("Write Npmrc File")
 
-    val npmPackageNpmrcAdditionalScopes: SettingKey[Map[String, String]] = settingKey[Map[String, String]]("Additional Scopes to Set Resolution for in the .npmrc file")
-    val npmPackageNpmrcKeySettings: SettingKey[Seq[(String, String, String)]] = settingKey[Seq[(String, String, String)]]("Key Value Pairs to Set for specific paths")
+    val npmPackageNpmrcAdditionalScopes: SettingKey[Map[String, String]] =
+      settingKey[Map[String, String]](
+        "Additional Scopes to Set Resolution for in the .npmrc file"
+      )
+    val npmPackageNpmrcKeySettings: SettingKey[Seq[(String, String, String)]] =
+      settingKey[Seq[(String, String, String)]](
+        "Key Value Pairs to Set for specific paths"
+      )
   }
   import autoImport._
 
@@ -204,14 +233,17 @@ object NpmPackagePlugin extends AutoPlugin {
         Map("publishConfig" -> Json.obj("registry" -> Json.fromString(s)))
       )
     },
-    npmPackageBinaries := Seq((npmPackageName.value, npmPackageOutputFilename.value)),
+    npmPackageBinaries := Seq(
+      (npmPackageName.value, npmPackageOutputFilename.value)
+    ),
     npmPackageVersion := {
       val vn = VersionNumber(version.value)
       (vn._1, vn._2, vn._3) match {
-        case (Some(i), Some(ii), Some(iii)) => s"$i.$ii.$iii" // Must be semver for npm
+        case (Some(i), Some(ii), Some(iii)) =>
+          s"$i.$ii.$iii" // Must be semver for npm
         case _ => "0.0.1"
       }
-    },
+    }
   ) ++ inConfig(Compile)(perConfigSettings)
 
   override def buildSettings: Seq[Setting[_]] = Seq(
@@ -240,7 +272,11 @@ object NpmPackagePlugin extends AutoPlugin {
     },
     npmPackageNpmrcAdditionalScopes := Map.empty,
     npmPackageNpmrcKeySettings := Seq(
-      ("//registry.npmjs.org/", "_authToken", "${" ++ npmPackageNpmrcAuthEnvironmentalVariable.value ++ "}")
+      (
+        "//registry.npmjs.org/",
+        "_authToken",
+        "${" ++ npmPackageNpmrcAuthEnvironmentalVariable.value ++ "}"
+      )
     )
   )
 
@@ -252,11 +288,13 @@ object NpmPackagePlugin extends AutoPlugin {
     },
     scalaJSLinkerConfig := {
       val c = scalaJSLinkerConfig.value
-      val hashbang = if (npmPackageBinaryEnable.value)
-        "#!/usr/bin/env node\n"
-      else
-        ""
-      c.withModuleKind(ModuleKind.CommonJSModule).withJSHeader(s"${hashbang}${c.jsHeader}")
+      val hashbang =
+        if (npmPackageBinaryEnable.value)
+          "#!/usr/bin/env node\n"
+        else
+          ""
+      c.withModuleKind(ModuleKind.CommonJSModule)
+        .withJSHeader(s"${hashbang}${c.jsHeader}")
     },
     npmPackagePackageJson := {
       PackageFile.writePackageJson(
@@ -281,19 +319,20 @@ object NpmPackagePlugin extends AutoPlugin {
         streams.value
       )
     },
-    npmPackageOutputJS := Def.taskDyn{
+    npmPackageOutputJS := Def.taskDyn {
       val outputTask = npmPackageStage.value match {
         case FastOpt => (configuration / fastOptJS).taskValue
         case FullOpt => (configuration / fullOptJS).taskValue
       }
-      Def.task{
+      Def.task {
         val output = outputTask.value.data
         val from = output.toPath()
         val fromSourceMap = from.resolveSibling(from.getFileName() + ".map")
         val targetDir = npmPackageOutputDirectory.value
-        val target = (targetDir / npmPackageOutputFilename.value)
+        val target = targetDir / npmPackageOutputFilename.value
         val targetPath = target.toPath
-        val targetSourceMapPath = targetPath.resolveSibling(targetPath.getFileName() + ".map")
+        val targetSourceMapPath =
+          targetPath.resolveSibling(targetPath.getFileName() + ".map")
 
         if (Files.exists(targetDir.toPath())) ()
         else Files.createDirectories(targetDir.toPath())
@@ -306,22 +345,25 @@ object NpmPackagePlugin extends AutoPlugin {
         Files.write(targetPath, lines.asJava)
         streams.value.log.info(s"Wrote $from to $targetPath")
         if (fromSourceMap.toFile().exists()) {
-          Files.copy(fromSourceMap, targetSourceMapPath, StandardCopyOption.REPLACE_EXISTING)
+          Files.copy(
+            fromSourceMap,
+            targetSourceMapPath,
+            StandardCopyOption.REPLACE_EXISTING
+          )
         } else ()
         target
       }
     }.value,
-
     npmPackageWriteREADME := {
       val from = npmPackageREADME.value
       val targetDir = npmPackageOutputDirectory.value
-      val target = (targetDir / "README.md")
+      val target = targetDir / "README.md"
       val targetPath = target.toPath
       val log = streams.value.log
       if (Files.exists(targetDir.toPath())) ()
       else Files.createDirectories(targetDir.toPath())
       from match {
-        case Some(fromF) => 
+        case Some(fromF) =>
           val from = fromF.toPath()
           Files.copy(from, targetPath, StandardCopyOption.REPLACE_EXISTING)
           log.info(s"Wrote $from to $targetPath")
@@ -331,25 +373,23 @@ object NpmPackagePlugin extends AutoPlugin {
           target
       }
     },
-
     npmPackageInstall := {
       val output = npmPackageOutputDirectory.value
       if (Files.exists(output.toPath())) ()
       else Files.createDirectories(output.toPath())
-      npmPackage.value
+      val _ = npmPackage.value
       ExternalCommand.install(
         baseDirectory.value,
         output,
         npmPackageUseYarn.value,
         streams.value.log,
         npmPackageNpmExtraArgs.value,
-        npmPackageYarnExtraArgs.value,
+        npmPackageYarnExtraArgs.value
       )
       output
     },
-
     npmPackagePublish := {
-      npmPackageInstall.value
+      val _ = npmPackageInstall.value
       val output = npmPackageOutputDirectory.value
       ExternalCommand.publish(
         baseDirectory.value,
@@ -357,15 +397,15 @@ object NpmPackagePlugin extends AutoPlugin {
         npmPackageUseYarn.value,
         streams.value.log,
         npmPackageNpmExtraArgs.value,
-        npmPackageYarnExtraArgs.value,
+        npmPackageYarnExtraArgs.value
       )
       output
     },
-
     npmPackageNpmrc := {
       val ourScope = npmPackageScope.value
       val ourReg = npmPackageNpmrcRegistry.value
-      val ourScopes = (ourScope, ourReg).tupled.fold(List.empty[(String, String)])(_ :: Nil)
+      val ourScopes =
+        (ourScope, ourReg).tupled.fold(List.empty[(String, String)])(_ :: Nil)
       val registries = npmPackageNpmrcAdditionalScopes.value.toList ++ ourScopes
       val keys = npmPackageNpmrcKeySettings.value
 
@@ -376,7 +416,6 @@ object NpmPackagePlugin extends AutoPlugin {
         streams.value.log
       )
     },
-
     npmPackageWriteExtraFiles := {
       val targetDir = npmPackageOutputDirectory.value
       val log = streams.value.log
@@ -385,18 +424,17 @@ object NpmPackagePlugin extends AutoPlugin {
       else Files.createDirectories(targetDir.toPath())
 
       npmPackageExtraFiles.value.foreach { from =>
-        val targetPath = (targetDir / from.name)
+        val targetPath = targetDir / from.name
         IO.copy(Seq(from -> targetPath), CopyOptions().withOverwrite(true))
         log.info(s"Wrote $from to $targetPath")
       }
     },
-
     npmPackage := {
       val b = npmPackagePackageJson.value
       val a = npmPackageOutputJS.value
       val c = npmPackageWriteREADME.value
       val d = npmPackageWriteExtraFiles.value
-      void(a,b,c,d)
+      void(a, b, c, d)
     }
   )
 
@@ -409,7 +447,7 @@ object NpmPackagePlugin extends AutoPlugin {
     } catch {
       case scala.util.control.NonFatal(_) => None
     }
-  } 
+  }
 
   private def void(a: Any*): Unit = (a, ())._2
 
