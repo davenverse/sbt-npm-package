@@ -76,7 +76,7 @@ object NpmDependencies {
                 .takeWhile(_ != null)
                 .filter(_.getName == NpmDependencies.manifestFileName)
                 .map(_ => parser.parse(IO.readStream(stream)).flatMap(_.as[NpmDependencies]).fold[NpmDependencies](throw _, identity(_)))
-                .to[Seq]
+                .to(Seq)
             } finally {
               stream.close()
             }
