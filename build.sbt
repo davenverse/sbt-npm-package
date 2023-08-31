@@ -24,7 +24,7 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 val catsV = "2.6.1"
 val catsEffectV = "3.1.1"
 val fs2V = "3.0.6"
-val circeV = "0.14.5"
+val circeV = "0.14.6"
 
 // Projects
 lazy val `sbt-npm-package` = tlCrossRootProject
