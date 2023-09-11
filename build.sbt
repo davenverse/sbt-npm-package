@@ -65,7 +65,7 @@ lazy val gha = project
       s"-Dscalajs.version=$scalaJSVersion",
       "-Dsbt.execute.extrachecks=true" // Avoid any deadlocks.
     ),
-    addSbtPlugin("org.typelevel" % "sbt-typelevel-github-actions" % "0.4.22"),
+    addSbtPlugin("org.typelevel" % "sbt-typelevel-github-actions" % "0.5.2"),
     test := {
       (Test / test).value
       scripted.toTask("").value
