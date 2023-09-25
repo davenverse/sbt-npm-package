@@ -9,7 +9,7 @@ ThisBuild / developers := List(
 ThisBuild / tlCiReleaseBranches := Seq("main")
 ThisBuild / tlSonatypeUseLegacyHost := true
 
-val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.11.0")
+val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.14.0")
 
 ThisBuild / crossScalaVersions := Seq("2.12.18")
 ThisBuild / versionScheme := Some("early-semver")
