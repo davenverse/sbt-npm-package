@@ -27,7 +27,7 @@ object NpmPackagePlugin extends AutoPlugin {
   object autoImport {
     lazy val npmPackageName = settingKey[String]("Name to use for npm package")
     lazy val npmPackageVersion =
-      settingKey[String]("Version to use for npm package")
+      settingKey[String]("Version to use for npm package. Must be parseable by node-semver.")
     lazy val npmPackageRepository =
       settingKey[Option[String]]("Repository Location for npm package")
     lazy val npmPackageDescription =
@@ -236,14 +236,7 @@ object NpmPackagePlugin extends AutoPlugin {
     npmPackageBinaries := Seq(
       (npmPackageName.value, npmPackageOutputFilename.value)
     ),
-    npmPackageVersion := {
-      val vn = VersionNumber(version.value)
-      (vn._1, vn._2, vn._3) match {
-        case (Some(i), Some(ii), Some(iii)) =>
-          s"$i.$ii.$iii" // Must be semver for npm
-        case _ => "0.0.1"
-      }
-    }
+    npmPackageVersion := version.value
   ) ++ inConfig(Compile)(perConfigSettings)
 
   override def buildSettings: Seq[Setting[_]] = Seq(
