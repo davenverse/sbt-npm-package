@@ -255,7 +255,7 @@ object PackageFile {
   ): List[(String, String)] = {
     val resolvedDependencies =
       dependencies
-        .groupBy { case (name, version) => name }
+        .groupBy { case (name, _) => name }
         .mapValues(_.map(_._2).distinct)
         .foldRight(List.empty[(String, String)]) {
           case ((name, versions), result) =>
