@@ -27,7 +27,9 @@ object NpmPackagePlugin extends AutoPlugin {
   object autoImport {
     lazy val npmPackageName = settingKey[String]("Name to use for npm package")
     lazy val npmPackageVersion =
-      settingKey[String]("Version to use for npm package. Must be parseable by node-semver.")
+      settingKey[String](
+        "Version to use for npm package. Must be parseable by node-semver."
+      )
     lazy val npmPackageRepository =
       settingKey[Option[String]]("Repository Location for npm package")
     lazy val npmPackageDescription =
