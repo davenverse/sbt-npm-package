@@ -39,7 +39,7 @@ lazy val core = project
       (Test / test).value
       scripted.toTask("").value
     },
-    addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.14.0"),
+    addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.15.0"),
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core" % circeV,
       "io.circe" %% "circe-parser" % circeV
