@@ -7,7 +7,6 @@ ThisBuild / developers := List(
   tlGitHubDev("christopherdavenport", "Christopher Davenport")
 )
 ThisBuild / tlCiReleaseBranches := Seq("main")
-ThisBuild / tlSonatypeUseLegacyHost := true
 
 ThisBuild / crossScalaVersions := Seq("2.12.18")
 ThisBuild / versionScheme := Some("early-semver")
